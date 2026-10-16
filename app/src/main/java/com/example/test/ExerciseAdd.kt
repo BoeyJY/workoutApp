@@ -343,7 +343,6 @@ fun NumberInputRow(
     }
 }
 
-// TODO add a way to put comments
 @Composable
 fun SetRow(
     set: sessionSets,

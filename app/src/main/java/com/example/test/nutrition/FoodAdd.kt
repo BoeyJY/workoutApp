@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,16 +40,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.test.data.NutrtionData.Food
 import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.topBar
+import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
+            date: String,
+            foodId: String,
             navController: NavController
 ) {
 
-    var amount by remember {mutableStateOf("0")}
+    var amount by remember {mutableStateOf("")}
+
 
     var ssExpanded by remember {mutableStateOf(false)}
     var ssSelectedOption by remember { mutableStateOf("g")}
@@ -57,11 +65,16 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
     var catSelectedOption by remember { mutableStateOf("Snack/Other")}
     val catOptions = listOf("Snack/Other", "Breakfast", "Lunch", "Dinner")
 
+    val id = foodId.toLong()
+    var selectedFood by remember{mutableStateOf<Food?>(null)}
+    LaunchedEffect(id)
+    {selectedFood = viewModel.getFoodById(id)}
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         topBar(
-            title = "",
+            title = selectedFood?.name ?: "error",
             onBackClick = {
                 navController.popBackStack()
             }
@@ -83,7 +96,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                     value = amount,
                     onValueChange = { newValue ->
                         // Only allow numbers and decimal points
-                        if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
                             amount = newValue
                         }
                     },
@@ -200,24 +213,28 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "kcal",
+                            text = "kcal: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                                (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "carb",
+                            text = "carb: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                                (selectedFood?.carbs_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "protein",
+                            text = "protein: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                                (selectedFood?.protein_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "fat",
+                            text = "fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                                (selectedFood?.fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -228,6 +245,81 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            Column(modifier = Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.Start) {
+                Text(
+                    text = "fiber: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                        (selectedFood?.fiber_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "sugar: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                        (selectedFood?.sugar_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "saturated fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                        (selectedFood?.sat_fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "sodium: ${String.format(LocalLocale.current.platformLocale, "%.2f",
+                        (selectedFood?.sodium_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "Brand: ${selectedFood?.brand?: ""}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "Country: ${selectedFood?.country?: ""}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "Barcode: ${selectedFood?.barcode?: ""}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ){
+                Button(
+                    onClick = {
+                        viewModel.insertLoggedFood(
+                            foodId = id,
+                            name = selectedFood?.name ?: "error",
+                            Date = date,
+                            category = catSelectedOption,
+                            weight = amount.toFloat(),
+                            servingSize = ssSelectedOption,
+                            kcal = (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F)
+                        )
+                        navController.navigate("FoodLog?navDate=${date}")
+                    },
+                    enabled = (amount.toFloatOrNull()?: 0f) > 0
+                ) {
+                    Text("Add")
+                }
+            }
         }
     }
 }
@@ -237,6 +329,6 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 fun FoodAddPreview() {
     val navController = rememberNavController()
     MaterialTheme{
-        FoodAdd(navController = navController)
+        FoodAdd(date = "2099-12-31",foodId = "", navController = navController)
     }
 }

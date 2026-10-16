@@ -1,10 +1,12 @@
 package com.example.test.nutrition
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,11 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 //import androidx.compose.material.icons.filled.Home
 //import androidx.compose.material.icons.filled.Person
 //import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,8 +32,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,10 +57,43 @@ import com.example.test.data.ExerciseViewModel
 //import com.example.test.data.NutrtionData.DbState
 import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.topBar
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun FoodLog(viewModel: NutritionViewModel = viewModel(),
+            navDate: String? = null,
             navController: NavController) {
+
+    val configuration = LocalConfiguration.current
+    val locale = configuration.locales[0]
+
+    val selectedDate = viewModel.logFoodDate
+
+
+    var lastAppliedNavDate by rememberSaveable { mutableStateOf<String?>(null) }
+    val dishes = viewModel.dishes
+    LaunchedEffect(navDate) {
+        if (navDate != null && navDate != selectedDate && navDate != lastAppliedNavDate) {
+            println("log Food navDate not working")
+            viewModel.updateLogFoodDate(navDate)
+            lastAppliedNavDate = navDate
+        }
+    }
+
+    LaunchedEffect(selectedDate) {
+        viewModel.getLoggedFoodsByDate(selectedDate)
+    }
+    val cards = dishes.groupBy { it.category }
+
+    val date = remember(selectedDate) {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        Calendar.getInstance().apply {
+            time = sdf.parse(selectedDate) ?: Date()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -57,7 +106,63 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline
+                    ),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shadowElevation = 2.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = {
+                            val newCal = (date.clone() as Calendar).apply {
+                                add(Calendar.DAY_OF_MONTH, -1)
+                            }
+                            val newDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newCal.time)
+                            viewModel.updateLogFoodDate(newDateStr)
+                        }, modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronLeft,
+                            contentDescription = "Previous day"
+                        )
+                    }
 
+                    Text(
+                        text = SimpleDateFormat(
+                            "EEEE, MMM d",
+                            locale
+                        ).format(date.time),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(
+                        onClick = {
+                            val newCal = (date.clone() as Calendar).apply {
+                                add(Calendar.DAY_OF_MONTH, 1)
+                            }
+                            val newDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newCal.time)
+                            viewModel.updateLogFoodDate(newDateStr)
+                        }, modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "Next day"
+                        )
+                    }
+                }
+            }
             // -------------------------
             // Macro section
             // -------------------------
@@ -69,7 +174,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
             ) {
 
                 Text(
-                    text = "Today's Macros",
+                    text = "Macros",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -114,7 +219,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
             // -------------------------
             // Food logging section
             // -------------------------
-
+            val meals = listOf("Breakfast", "Lunch", "Dinner", "Snack/Other")
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,19 +229,90 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                     ),
                 contentAlignment = Alignment.Center
             ) {
+                LazyColumn(modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(8.dp),
+                    ) {
+                    meals.forEach{ meal ->
+                        item(key = meal) {
+                            Category(meal)
+                        }
+                        val dishesInMeal = cards[meal].orEmpty()
+                        if (dishesInMeal.isNotEmpty()){
+                            items(dishesInMeal.toList()){ dish ->
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    shape = RectangleShape   // no rounded corners so seams are clean
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    ) {
+                                        Text(dish.name,style = MaterialTheme.typography.titleMedium)
 
+                                        Text("${dish.weight}g  ${dish.kcal}kcal",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 Button(
                     onClick = {
-                        navController.navigate("FoodList")
+                        val date = SimpleDateFormat(
+                            "yyyy-MM-dd"
+                        ).format(date.time)
+                        navController.navigate("FoodList/$date")
                     },
-                    modifier = Modifier.size(80.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                        .size(64.dp),
                     shape = CircleShape
                 ) {
                     Text(
                         text = "+",
-                        fontSize = 32.sp
+                        fontSize = 28.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun Category(
+    title: String
+){
+    Surface(
+        modifier = Modifier.fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = MaterialTheme.shapes.medium
+            ),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+            IconButton(onClick = {
+                        //TODO
+                 }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add to $title")
             }
         }
     }

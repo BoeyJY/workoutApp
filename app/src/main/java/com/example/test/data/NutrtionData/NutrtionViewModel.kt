@@ -108,6 +108,44 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     suspend fun getFoodServingSize(foodId: Long): Float {
         return repo.getFoodServingSize(foodId)
     }
+
+    suspend fun getFoodById(foodId: Long): Food{
+        return repo.getFoodById(foodId)
+    }
+
+    var logFoodDate by mutableStateOf(
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    )
+    private set
+
+    fun updateLogFoodDate(newDate: String){
+        logFoodDate = newDate
+    }
+
+    fun insertLoggedFood(
+        foodId: Long,
+        name: String,
+        Date: String,
+        category: String,
+        weight: Float,
+        servingSize: String,
+        kcal: Float
+    ){
+        viewModelScope.launch{
+            repo.insertLoggedFood(foodId, name, Date, category, weight, servingSize, kcal)
+        }
+    }
+
+
+    var dishes by mutableStateOf(listOf<logged_foods>())
+    private set
+
+    fun getLoggedFoodsByDate(date: String){
+        viewModelScope.launch{
+            dishes = repo.getLoggedFoodsByDate(date)
+        }
+    }
+
 }
 //
 //sealed interface DbState {

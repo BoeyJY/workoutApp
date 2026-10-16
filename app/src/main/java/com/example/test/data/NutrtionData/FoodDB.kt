@@ -10,8 +10,9 @@ import java.io.File
 [   Food::class,
     food_aliases::class,
     food_barcodes::class,
-    food_servings::class
-], version = 2, exportSchema = false)
+    food_servings::class,
+    logged_foods::class
+], version = 3, exportSchema = false)
 
 abstract class FoodDB : RoomDatabase(){
     abstract fun NutritionDAO() : NutritionDAO
@@ -20,19 +21,6 @@ abstract class FoodDB : RoomDatabase(){
         @Volatile
         private var INSTANCE: FoodDB? = null
 
-//        fun getInstance(context: Context): FoodDB =
-//             INSTANCE?: synchronized(this){
-////                val dbFile = context.getDatabasePath("lethio-food-db.sqlite")
-//                INSTANCE?: Room.databaseBuilder(
-//                    context.applicationContext,
-//                    FoodDB::class.java,
-//                    "lethio-food-db.sqlite" // The name of the Room database
-//                )
-//                    .build().also {INSTANCE = it}
-//
-////                INSTANCE = instance
-////                instance
-//            }
 fun getInstance(context: Context): FoodDB =
     return INSTANCE?: synchronized(this){
 //                val dbFile = context.getDatabasePath("lethio-food-db.sqlite")
@@ -41,7 +29,7 @@ fun getInstance(context: Context): FoodDB =
             FoodDB::class.java,
             "lethio_db" // The name of the Room database
         )
-            .fallbackToDestructiveMigration(true)
+//            .fallbackToDestructiveMigration(true)
             .createFromAsset("lethio_db.sqlite")
             .build()
         INSTANCE = instance

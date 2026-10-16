@@ -123,4 +123,34 @@ class NutritionRepo(private val context: Context) {
         return dao.getFoodServingSize(foodId)
     }
 
+    suspend fun getFoodById(foodId: Long): Food{
+        return dao.getFoodById(foodId)
+    }
+
+    suspend fun insertLoggedFood(
+        foodId: Long,
+        name: String,
+        Date: String,
+        category: String,
+        weight: Float,
+        servingSize: String,
+        kcal: Float
+    ){
+        val loggedFoodsEntity = logged_foods(
+            foodId = foodId,
+            name = name,
+            Date = Date,
+            category = category,
+            weight = weight,
+            servingSize = servingSize,
+            kcal = kcal
+        )
+        dao.insertLoggedFood(loggedFoodsEntity)
+    }
+
+
+    suspend fun getLoggedFoodsByDate(date: String): List<logged_foods>{
+        return dao.getLoggedFoodsByDate(date)
+    }
+
 }

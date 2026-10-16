@@ -14,58 +14,7 @@ import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.NavController
-//
-//@Composable
-//fun botNavBar(
-//    selectedTab: Int,
-//              onItemSelected: (Int) -> Unit
-//) {
-//            NavigationBar {
-//
-//                NavigationBarItem(
-//                    selected = selectedTab == 0,
-//                    onClick = { onItemSelected (0) },
-//                    icon = {
-//                        Text(
-//                            text = "⌂",
-//                            fontSize = 24.sp
-//                        )
-//                    },
-//                    label = {
-//                        Text("Home")
-//                    }
-//                )
-//
-//                NavigationBarItem(
-//                    selected = selectedTab == 1,
-//                    onClick = { onItemSelected (1) },
-//                    icon = {
-//                        Text(
-//                            text = "●",
-//                            fontSize = 22.sp
-//                        )
-//                    },
-//                    label = {
-//                        Text("Workouts")
-//                    }
-//                )
-//
-//                NavigationBarItem(
-//                    selected = selectedTab == 2,
-//                    onClick = { onItemSelected (2) },
-//                    icon = {
-//                        Text(
-//                            text = "⚙",
-//                            fontSize = 20.sp
-//                        )
-//                    },
-//                    label = {
-//                        Text("Nutrition")
-//                    }
-//                )
-//            }
-//
-//}
+
 
 @Composable
 fun BotNavBar(
