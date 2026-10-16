@@ -1,5 +1,6 @@
 package com.example.test
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
+import com.example.test.data.NutrtionData.Food
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 
 @Composable
@@ -189,6 +199,40 @@ fun QuickActionCard(
         }
     }
 }
+
+suspend fun downloadDatabaseIfNeeded(context: Context, databaseUrl: String, databaseFileName: String): Boolean {
+    val databaseFile = context.getDatabasePath(databaseFileName)
+
+    // If the file already exists, no need to download
+    if (databaseFile.exists()) {
+        return true
+    }
+
+    return withContext(Dispatchers.IO) {
+        try {
+            val client = OkHttpClient()
+            val request = Request.Builder().url(databaseUrl).build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                // Ensure the parent directory exists
+                databaseFile.parentFile?.mkdirs()
+
+                response.body?.byteStream()?.use { inputStream ->
+                    FileOutputStream(databaseFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+            }
+            true // Download successful
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false // Download failed
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
