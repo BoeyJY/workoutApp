@@ -45,6 +45,7 @@ import java.net.URLEncoder
 @Composable
 fun FoodList(viewModel: NutritionViewModel = viewModel(),
              date: String,
+             category: String = "Other",
              navController: NavController
 ){
     var isSearching by remember { mutableStateOf(false) }
@@ -96,6 +97,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                             servingSize = ss,
                             kcalPss = (food.kcal_100g/100*ss),
                             date,
+                            category,
                             navController
                         )
                     }
@@ -114,12 +116,13 @@ fun FoodRow(
     servingSize: Float,
     kcalPss: Float,
     date: String,
+    category: String,
     navController: NavController
 ) {
     Card(
         modifier = modifier.fillMaxWidth()
             .clickable{
-                navController.navigate("FoodAdd/${date}/${food.id}")
+                navController.navigate("FoodAdd/${date}/${food.id}/${category}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

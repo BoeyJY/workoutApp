@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalLocale
 fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
             date: String,
             foodId: String,
+            category: String,
             navController: NavController
 ) {
 
@@ -62,8 +63,8 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
     val ssOptions = listOf("g", "oz")
 
     var catExpanded by remember {mutableStateOf(false)}
-    var catSelectedOption by remember { mutableStateOf("Snack/Other")}
-    val catOptions = listOf("Snack/Other", "Breakfast", "Lunch", "Dinner")
+    var catSelectedOption by remember { mutableStateOf(category)}
+    val catOptions = listOf("Other", "Breakfast", "Lunch", "Dinner")
 
     val id = foodId.toLong()
     var selectedFood by remember{mutableStateOf<Food?>(null)}
@@ -329,6 +330,6 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 fun FoodAddPreview() {
     val navController = rememberNavController()
     MaterialTheme{
-        FoodAdd(date = "2099-12-31",foodId = "", navController = navController)
+        FoodAdd(date = "2099-12-31",foodId = "", category = "Breakfast", navController = navController)
     }
 }

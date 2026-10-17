@@ -219,7 +219,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
             // -------------------------
             // Food logging section
             // -------------------------
-            val meals = listOf("Breakfast", "Lunch", "Dinner", "Snack/Other")
+            val meals = listOf("Breakfast", "Lunch", "Dinner", "Other")
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,9 +232,12 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                 LazyColumn(modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp),
                     ) {
+                    val date = SimpleDateFormat(
+                        "yyyy-MM-dd"
+                    ).format(date.time)
                     meals.forEach{ meal ->
                         item(key = meal) {
-                            Category(meal)
+                            Category(date, meal, navController)
                         }
                         val dishesInMeal = cards[meal].orEmpty()
                         if (dishesInMeal.isNotEmpty()){
@@ -285,7 +288,9 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
 
 @Composable
 fun Category(
-    title: String
+    date: String,
+    title: String,
+    navController: NavController
 ){
     Surface(
         modifier = Modifier.fillMaxWidth()
@@ -310,6 +315,7 @@ fun Category(
             )
             IconButton(onClick = {
                         //TODO
+                        navController.navigate("FoodList/${date}?category=$title")
                  }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add to $title")
