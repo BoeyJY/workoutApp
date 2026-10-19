@@ -37,5 +37,19 @@ interface NutritionDAO{
     @Query("DELETE FROM logged_foods WHERE id = :id")
     suspend fun deleteLoggedFood(id: Long)
 
+    @Query("SELECT IFNULL(SUM(lf.kcal), 0) as cal, " +
+            "IFNULL(SUM(f.protein_100g/100*lf.weight), 0)as protein, " +
+            "IFNULL(SUM(f.carbs_100g/100*lf.weight), 0) as carb, " +
+            "IFNULL(SUM(f.fat_100g/100*lf.weight), 0) as fat " +
+            "FROM logged_foods lf INNER JOIN foods f " +
+            "ON lf.foodId = f.id WHERE date = :date")
+    suspend fun getDailyMacros(date: String): DailyMacros
 
 }
+
+data class DailyMacros(
+    val cal: Float? = 0F,
+    val protein: Float? = 0F,
+    val carb: Float? = 0F,
+    val fat: Float? = 0F
+)

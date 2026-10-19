@@ -46,6 +46,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -75,6 +76,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
 
     var lastAppliedNavDate by rememberSaveable { mutableStateOf<String?>(null) }
     val dishes = viewModel.dishes
+    val dailyMacros = viewModel.dailyMacros
     LaunchedEffect(navDate) {
         if (navDate != null && navDate != selectedDate && navDate != lastAppliedNavDate) {
             println("log Food navDate not working")
@@ -86,6 +88,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
     LaunchedEffect(selectedDate) {
         viewModel.getLoggedFoodsByDate(selectedDate)
     }
+
     val cards = dishes.groupBy { it.category }
 
     val date = remember(selectedDate) {
@@ -183,10 +186,21 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                     modifier = Modifier.height(16.dp)
                 )
 
+                MacroBar(
+                    name = "Calories",
+                    current = dailyMacros.cal,
+                    goal = 2000,
+                    color = Color(0xFF7EC8D3)
+                )
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
+
                 // Protein
                 MacroBar(
                     name = "Protein",
-                    current = 120,
+                    current = dailyMacros.protein,
                     goal = 160,
                     color = Color(0xFF4CAF50)
                 )
@@ -198,7 +212,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                 // Carbohydrates
                 MacroBar(
                     name = "Carbs",
-                    current = 180,
+                    current = dailyMacros.carb,
                     goal = 250,
                     color = Color(0xFFFF9800)
                 )
@@ -210,7 +224,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                 // Fat
                 MacroBar(
                     name = "Fat",
-                    current = 60,
+                    current = dailyMacros.fat,
                     goal = 80,
                     color = Color(0xFF2196F3)
                 )
@@ -331,11 +345,11 @@ fun Category(
 @Composable
 fun MacroBar(
     name: String,
-    current: Int,
+    current: Float? = 0F,
     goal: Int,
     color: Color
 ) {
-    val barColor = if(current > goal){Color(0xFFFF000D)}
+    val barColor = if(current!! > goal){Color(0xFFFF000D)}
     else {color}
 
     Column(
@@ -353,7 +367,7 @@ fun MacroBar(
             )
 
             Text(
-                text = "$current / ${goal}g"
+                text = "${String.format(LocalLocale.current.platformLocale, "%.2f",current)} / ${goal}g"
             )
         }
 
@@ -363,7 +377,7 @@ fun MacroBar(
 
         LinearProgressIndicator(
             progress = {
-                (current.toFloat() / goal.toFloat())
+                (current / goal.toFloat())
                     .coerceIn(0f, 1f)
             },
             modifier = Modifier

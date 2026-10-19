@@ -153,6 +153,10 @@ class NutritionRepo(private val context: Context) {
         return dao.getLoggedFoodsByDate(date)
     }
 
+    suspend fun getDailyMacros(date: String): DailyMacros{
+        return dao.getDailyMacros(date)
+    }
+
     suspend fun getLoggedFoodsById(id: Long): logged_foods{
         return dao.getLoggedFoodsById(id)
     }

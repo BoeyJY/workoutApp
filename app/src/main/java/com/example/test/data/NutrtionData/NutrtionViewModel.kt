@@ -140,11 +140,18 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     var dishes by mutableStateOf(listOf<logged_foods>())
     private set
 
+    var dailyMacros by mutableStateOf(DailyMacros(0F, 0F, 0F, 0F))
+        private set
+
     fun getLoggedFoodsByDate(date: String){
         viewModelScope.launch{
             dishes = repo.getLoggedFoodsByDate(date)
+            dailyMacros = repo.getDailyMacros(date)
         }
     }
+
+
+
 
     suspend fun getLoggedFoodsById(id: Long): logged_foods{
         return repo.getLoggedFoodsById(id)

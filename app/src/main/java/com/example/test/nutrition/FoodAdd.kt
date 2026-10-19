@@ -77,7 +77,6 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 
     val id = foodId.toLong()
     var selectedFood by remember{mutableStateOf<Food?>(null)}
-    println(loggedId)
     LaunchedEffect(id)
     {
         selectedFood = viewModel.getFoodById(id)
