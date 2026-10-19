@@ -146,6 +146,27 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    suspend fun getLoggedFoodsById(id: Long): logged_foods{
+        return repo.getLoggedFoodsById(id)
+    }
+
+    fun updateLoggedFood(
+        weight: Float,
+        category: String,
+        ss: String,
+        kcal: Float,
+        id: Long){
+        viewModelScope.launch {
+            repo.updateLoggedFood(weight, category, ss, kcal, id)
+        }
+    }
+
+    fun deleteLoggedFood(id: Long){
+        viewModelScope.launch{
+            repo.deleteLoggedFood(id)
+        }
+    }
+
 }
 //
 //sealed interface DbState {

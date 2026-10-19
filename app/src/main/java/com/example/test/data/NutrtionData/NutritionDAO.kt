@@ -26,4 +26,16 @@ interface NutritionDAO{
 
     @Query("SELECT * FROM logged_foods WHERE date = :date")
     suspend fun getLoggedFoodsByDate(date: String): List<logged_foods>
+
+    @Query("SELECT * FROM logged_foods WHERE id = :id")
+    suspend fun getLoggedFoodsById(id: Long): logged_foods
+
+    @Query("UPDATE logged_foods SET weight = :weight, category = :category, " +
+            "servingSize = :ss, kcal = :kcal WHERE id = :id")
+    suspend fun updateLoggedFood(weight: Float, category: String, ss: String, kcal: Float, id: Long)
+
+    @Query("DELETE FROM logged_foods WHERE id = :id")
+    suspend fun deleteLoggedFood(id: Long)
+
+
 }

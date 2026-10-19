@@ -87,18 +87,23 @@ fun MainScreen() {
                 FoodList(date = date, category = category, navController = navController)
             }
 
-            composable ("FoodAdd/{date}/{foodId}/{category}",
+            composable ("FoodAdd/{date}/{foodId}/{category}?loggedId={loggedId}",
                 arguments = listOf(navArgument("date") { defaultValue = "" },
                         navArgument("foodId") { defaultValue = "" },
-                    navArgument("category") { defaultValue = "Other" }))
+                    navArgument("category") { defaultValue = "Other" },
+                    navArgument("loggedId") {
+                        nullable = true
+                        defaultValue = null }))
             {
                 backStackEntry ->
                 val date = backStackEntry.arguments?.getString("date") ?: ""
                 val foodId = backStackEntry.arguments?.getString("foodId") ?: ""
                 val category = backStackEntry.arguments?.getString("category") ?: ""
+                val loggedId = backStackEntry.arguments?.getString("loggedId")
                 FoodAdd(date = date,
                     foodId = foodId,
                     category = category,
+                    loggedId = loggedId,
                     navController = navController)
             }
 

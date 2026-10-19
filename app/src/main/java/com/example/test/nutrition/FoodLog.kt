@@ -243,9 +243,14 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                         if (dishesInMeal.isNotEmpty()){
                             items(dishesInMeal.toList()){ dish ->
                                 Surface(
+                                    onClick = {
+                                        //TODO
+                                        navController.navigate(
+                                            "foodAdd/${dish.Date}/${dish.foodId}/${dish.category}?loggedId=${dish.id}")
+                                    },
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.surface,
-                                    shape = RectangleShape   // no rounded corners so seams are clean
+                                    shape = RectangleShape
                                 ) {
                                     Column(
                                         modifier = Modifier
@@ -314,7 +319,6 @@ fun Category(
                 style = MaterialTheme.typography.titleMedium
             )
             IconButton(onClick = {
-                        //TODO
                         navController.navigate("FoodList/${date}?category=$title")
                  }
             ) {

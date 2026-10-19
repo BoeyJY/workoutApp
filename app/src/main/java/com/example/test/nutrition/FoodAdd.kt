@@ -12,17 +12,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +60,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
             date: String,
             foodId: String,
             category: String,
+            loggedId: String? = null,
             navController: NavController
 ) {
 
@@ -68,8 +77,18 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 
     val id = foodId.toLong()
     var selectedFood by remember{mutableStateOf<Food?>(null)}
+    println(loggedId)
     LaunchedEffect(id)
-    {selectedFood = viewModel.getFoodById(id)}
+    {
+        selectedFood = viewModel.getFoodById(id)
+        if (loggedId != null) {
+
+            val updateFood = viewModel.getLoggedFoodsById(loggedId.toLong())
+            amount = updateFood.weight.toString()
+            ssSelectedOption = updateFood.servingSize
+            catSelectedOption = updateFood.category
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -303,22 +322,111 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
-                Button(
-                    onClick = {
-                        viewModel.insertLoggedFood(
-                            foodId = id,
-                            name = selectedFood?.name ?: "error",
-                            Date = date,
-                            category = catSelectedOption,
-                            weight = amount.toFloat(),
-                            servingSize = ssSelectedOption,
-                            kcal = (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F)
-                        )
-                        navController.navigate("FoodLog?navDate=${date}")
-                    },
-                    enabled = (amount.toFloatOrNull()?: 0f) > 0
-                ) {
-                    Text("Add")
+                if(loggedId == null) {
+                    Button(
+                        onClick = {
+                            viewModel.insertLoggedFood(
+                                foodId = id,
+                                name = selectedFood?.name ?: "error",
+                                Date = date,
+                                category = catSelectedOption,
+                                weight = amount.toFloat(),
+                                servingSize = ssSelectedOption,
+                                kcal = (selectedFood?.kcal_100g
+                                    ?: 0F) / 100 * (amount.toFloatOrNull() ?: 0F)
+                            )
+                            navController.navigate("FoodLog?navDate=${date}")
+                        },
+                        enabled = (amount.toFloatOrNull() ?: 0f) > 0
+                    ) {
+                        Text("Add")
+                    }
+                }
+                else{
+
+                    var showDialog by remember { mutableStateOf(false)}
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp) // Adds space between buttons
+                    ) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                viewModel.updateLoggedFood(
+                                    weight = amount.toFloat(),
+                                    category = catSelectedOption,
+                                    ss = ssSelectedOption,
+                                    kcal = (selectedFood?.kcal_100g
+                                        ?: 0F) / 100 * (amount.toFloatOrNull() ?: 0F),
+                                    id = loggedId.toLong()
+                                )
+                                navController.navigate("FoodLog?navDate=${date}")
+                            },
+                            enabled = (amount.toFloatOrNull() ?: 0f) > 0
+                        ) {
+                            Text("Update")
+                        }
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            onClick = {
+                                showDialog = true
+                            }
+                        ) {
+                            Text("Delete")
+                        }
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Text("Cancel")
+                        }
+                        if (showDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDialog = false },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = "Delete Warning",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                title = {
+                                    Text("Delete Entry?")
+                                },
+                                text = {
+                                    Text("Are you sure you want to delete this? This action cannot be undone.")
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showDialog = false
+                                            viewModel.deleteLoggedFood(
+                                                id = loggedId.toLong()
+                                            )
+                                            navController.navigate("FoodLog?navDate=${date}")
+                                        }
+                                    ) {
+                                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = { showDialog = false }
+                                    ) {
+                                        Text("Cancel", color = AlertDialogDefaults.textContentColor)
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

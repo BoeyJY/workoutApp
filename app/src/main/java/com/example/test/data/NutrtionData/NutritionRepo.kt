@@ -153,4 +153,16 @@ class NutritionRepo(private val context: Context) {
         return dao.getLoggedFoodsByDate(date)
     }
 
+    suspend fun getLoggedFoodsById(id: Long): logged_foods{
+        return dao.getLoggedFoodsById(id)
+    }
+
+    suspend fun updateLoggedFood(weight: Float, category: String, ss: String, kcal: Float, id: Long){
+        dao.updateLoggedFood(weight, category, ss, kcal, id)
+    }
+
+    suspend fun deleteLoggedFood(id: Long){
+        dao.deleteLoggedFood(id)
+    }
+
 }
