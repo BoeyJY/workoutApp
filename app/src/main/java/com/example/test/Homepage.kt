@@ -12,16 +12,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,8 +41,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
 import com.example.test.data.NutrtionData.Food
+import com.example.test.data.download.DownloadViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -43,11 +56,15 @@ import java.io.IOException
 
 
 @Composable
-fun HomePage() {
+fun HomePage(viewModel: DownloadViewModel = viewModel()) {
 
     var selectedTab by remember {
         mutableIntStateOf(0)
     }
+
+
+
+
     Log.d("test", "homepage")
     Scaffold(
         topBar = {
@@ -65,11 +82,13 @@ fun HomePage() {
         ) {
 
             // Header
-            Text(
-                text = "Hello! 👋",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+
+                Text(
+                    text = "Hello! 👋",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -115,6 +134,7 @@ fun HomePage() {
                     Button(
                         onClick = {
                             // Put something here later
+                            viewModel.dbReady()
                         }
                     ) {
                         Text("Get Started")
@@ -168,6 +188,103 @@ fun HomePage() {
             }
         }
     }
+
+
+
+    val ready = viewModel.dbReady
+    LaunchedEffect(viewModel) {
+        if (ready == null) {
+            viewModel.dbReady()
+        }
+    }
+
+    val downloadState by viewModel.downloadState
+        .collectAsStateWithLifecycle()
+
+    var showDialog = viewModel.showDialog
+
+    if (showDialog
+//        && downloadState != DownloadViewModel.DownloadState.Success
+        && ready == false) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.dismissDialog()
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowCircleDown,
+                    contentDescription = "Download Resources",
+                    tint = MaterialTheme.colorScheme.surfaceVariant
+                )
+            },
+            title = {
+                Text("Resources needs to be downloaded?")
+            },
+            text = {
+                when (val state = downloadState) {
+                    DownloadViewModel.DownloadState.NotStarted -> {
+                        Text(
+                            "Click continue to begin the download"
+                        )
+                    }
+                    DownloadViewModel.DownloadState.Downloading -> {
+                        CircularProgressIndicator()
+                        Spacer(Modifier.height(12.dp))
+                        Text("Downloading database...")
+                    }
+                    DownloadViewModel.DownloadState.Success -> {
+
+                        Text("Download complete!")
+                    }
+                    is DownloadViewModel.DownloadState.Error -> {
+                        Text(
+                            "Download failed: ${state.message}"
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                when (downloadState) {
+                    DownloadViewModel.DownloadState.NotStarted,
+                    is DownloadViewModel.DownloadState.Error -> {
+                        TextButton(
+                            onClick = {
+                                viewModel.refreshExercisesFromNetwork()
+                            }
+                        ) {
+                            Text(
+                                if (downloadState is DownloadViewModel.DownloadState.Error)
+                                    "Retry"
+                                else
+                                    "Download", color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    DownloadViewModel.DownloadState.Downloading -> {
+                        // No button while downloading.
+                    }
+
+                    DownloadViewModel.DownloadState.Success -> {
+                        Button(
+                            onClick = {
+                                viewModel.dismissDialog()
+                            }
+                        ) {
+                            Text("Done")
+                        }
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.dismissDialog() }
+                ) {
+                    Text("Cancel", color = AlertDialogDefaults.textContentColor)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -200,38 +317,6 @@ fun QuickActionCard(
     }
 }
 
-suspend fun downloadDatabaseIfNeeded(context: Context, databaseUrl: String, databaseFileName: String): Boolean {
-    val databaseFile = context.getDatabasePath(databaseFileName)
-
-    // If the file already exists, no need to download
-    if (databaseFile.exists()) {
-        return true
-    }
-
-    return withContext(Dispatchers.IO) {
-        try {
-            val client = OkHttpClient()
-            val request = Request.Builder().url(databaseUrl).build()
-
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                // Ensure the parent directory exists
-                databaseFile.parentFile?.mkdirs()
-
-                response.body?.byteStream()?.use { inputStream ->
-                    FileOutputStream(databaseFile).use { outputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-            }
-            true // Download successful
-        } catch (e: IOException) {
-            e.printStackTrace()
-            false // Download failed
-        }
-    }
-}
 
 
 @Preview(showBackground = true)

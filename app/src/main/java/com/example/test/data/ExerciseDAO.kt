@@ -17,6 +17,12 @@ interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercise(exercise: Exercise)
 
+
+    //
+    @Query("SELECT EXISTS(SELECT * FROM exercises LIMIT 1)")
+    suspend fun dbReady(): Boolean
+    //
+
     @Query("SELECT * FROM exercises ORDER BY id ASC")
     fun getExercisesPaged(): PagingSource<Int, Exercise>
 

@@ -35,20 +35,20 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    init {
-        Log.d("test", "ViewModel")
-        // On ViewModel creation, refresh from network (if needed) and load from DB.
-        viewModelScope.launch {
-            Log.d("test test", "ViewModel")
-            // First, try to refresh (this will only hit network if DB is empty)
-            repository.refreshExercisesFromNetwork()
-
-            // Then collect the database flow and update UI state
-            repository.getAllExercises().collect { exercises ->
-                _uiState.value = UiState.Success(exercises)
-            }
-        }
-    }
+//    init {
+//        Log.d("test", "ViewModel")
+//        // On ViewModel creation, refresh from network (if needed) and load from DB.
+//        viewModelScope.launch {
+//            Log.d("test test", "ViewModel")
+//            // First, try to refresh (this will only hit network if DB is empty)
+//            repository.refreshExercisesFromNetwork()
+//
+//            // Then collect the database flow and update UI state
+//            repository.getAllExercises().collect { exercises ->
+//                _uiState.value = UiState.Success(exercises)
+//            }
+//        }
+//    }
 
     fun addUserExercise(name: String, instructions: String?) {
         viewModelScope.launch {

@@ -70,34 +70,34 @@ fun ExerciseList(
         if(!isSearching) {
             Box(modifier = Modifier.padding(paddingValues)) {
                 // 2. Check the REFRESH state (initial load or pull-to-refresh)
-                when (val refreshState = exercises.loadState.refresh) {
-                    is LoadState.Loading -> {
-                        // Full screen loader for the very first page
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    is LoadState.Error -> {
-                        // Full screen error if the FIRST page fails (e.g., DB corruption, but usually rare)
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(text = "Failed to load exercises: ${refreshState.error.message}")
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { exercises.retry() }) {
-                                Text("Retry")
-                            }
-                        }
-                    }
-
-                    else -> {
-                        // 3. The main list (Success state)
+//                when (val refreshState = exercises.loadState.refresh) {
+//                    is LoadState.Loading -> {
+//                        // Full screen loader for the very first page
+//                        Box(
+//                            modifier = Modifier.fillMaxSize(),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            CircularProgressIndicator()
+//                        }
+//                    }
+//
+//                    is LoadState.Error -> {
+//                        // Full screen error if the FIRST page fails (e.g., DB corruption, but usually rare)
+//                        Column(
+//                            modifier = Modifier.fillMaxSize(),
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            verticalArrangement = Arrangement.Center
+//                        ) {
+//                            Text(text = "Failed to load exercises: ${refreshState.error.message}")
+//                            Spacer(modifier = Modifier.height(16.dp))
+//                            Button(onClick = { exercises.retry() }) {
+//                                Text("Retry")
+//                            }
+//                        }
+//                    }
+//
+//                    else -> {
+//                        // 3. The main list (Success state)
                         LazyColumn(
                             Modifier
                                 .fillMaxSize()
@@ -121,48 +121,49 @@ fun ExerciseList(
                                     )
                                 }
                             }
-
-                            when (val appendState = exercises.loadState.append) {
-                                is LoadState.Loading -> {
-                                    // Footer loading spinner when scrolling down
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CircularProgressIndicator()
-                                        }
-                                    }
-                                }
-
-                                is LoadState.Error -> {
-                                    // Footer error with retry button for the next page
-                                    item {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                text = "Failed to load more: ${appendState.error.message}",
-                                                color = MaterialTheme.colorScheme.error
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Button(onClick = { exercises.retry() }) {
-                                                Text("Retry")
-                                            }
-                                        }
-                                    }
-                                }
-
-                                else -> {}
-                            }
                         }
-                    }
-                }
+//
+//                            when (val appendState = exercises.loadState.append) {
+//                                is LoadState.Loading -> {
+//                                    // Footer loading spinner when scrolling down
+//                                    item {
+//                                        Box(
+//                                            modifier = Modifier
+//                                                .fillMaxWidth()
+//                                                .padding(16.dp),
+//                                            contentAlignment = Alignment.Center
+//                                        ) {
+//                                            CircularProgressIndicator()
+//                                        }
+//                                    }
+//                                }
+//
+//                                is LoadState.Error -> {
+//                                    // Footer error with retry button for the next page
+//                                    item {
+//                                        Column(
+//                                            modifier = Modifier
+//                                                .fillMaxWidth()
+//                                                .padding(16.dp),
+//                                            horizontalAlignment = Alignment.CenterHorizontally
+//                                        ) {
+//                                            Text(
+//                                                text = "Failed to load more: ${appendState.error.message}",
+//                                                color = MaterialTheme.colorScheme.error
+//                                            )
+//                                            Spacer(modifier = Modifier.height(8.dp))
+//                                            Button(onClick = { exercises.retry() }) {
+//                                                Text("Retry")
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//
+//                                else -> {}
+//                            }
+//                        }
+//                    }
+//                }
             }
         }
         else {

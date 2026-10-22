@@ -14,6 +14,10 @@ import kotlinx.coroutines.withContext
 class ExerciseRepo(private val context: Context) {
     private val dao = ExerciseDB.getInstance(context).exerciseDao()
 
+    suspend fun dbReady(): Boolean{
+        return dao.dbReady()
+    }
+
     fun getExercisesPaged(): Flow<PagingData<Exercise>> {
         return Pager(
             config = PagingConfig(
@@ -34,26 +38,27 @@ class ExerciseRepo(private val context: Context) {
     }
 
     // Fetch from GitHub and store in Room (should be called only once on first launch)
-    suspend fun refreshExercisesFromNetwork() {
+    suspend fun refreshExercisesFromNetwork(): Boolean =
         withContext(Dispatchers.IO) {
             // Check if we already have exercises in DB (to avoid redundant network calls)
             val existing = dao.getAllExercises()
-            if (existing.isNotEmpty()) return@withContext
+            if (existing.isNotEmpty()) return@withContext true
 
             try {
                 val response = NetworkModule.api.fetchExercises()
                 val json = response.string()
                 val exercises = ExerciseParser.parseExerciseJson(json)
                 dao.insertAll(exercises)
+            true
             } catch (e: Exception) {
                 // Handle error (maybe log or fallback to bundled JSON)
 //
                 println("Execption caught in repo")
                 e.printStackTrace()
-
+                false
             }
         }
-    }
+
 
     // Add a user-created exercise
     suspend fun addUserExercise(exercise: Exercise) {
@@ -145,5 +150,13 @@ class ExerciseRepo(private val context: Context) {
         // 2. If no session, return empty list (no cards)
         return if (session == null) emptyList()
         else dao.getExerciseCardsForSession(session.id)
+    }
+
+
+
+
+    // del later
+    suspend fun getExerciseByName(name: String): Exercise{
+        return dao.getExerciseByName(name)
     }
 }
