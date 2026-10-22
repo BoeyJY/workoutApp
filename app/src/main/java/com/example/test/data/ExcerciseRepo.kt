@@ -18,17 +18,20 @@ class ExerciseRepo(private val context: Context) {
         return dao.dbReady()
     }
 
-    fun getExercisesPaged(): Flow<PagingData<Exercise>> {
+    fun getExercisesPaged(muscle: String): Flow<PagingData<Exercise>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 20,               // Load 20 items per page
                 prefetchDistance = 5,        // Load the next page when 5 items away from the bottom
                 enablePlaceholders = false   // Don't show placeholders for unsupported items
             ),
-            pagingSourceFactory = { dao.getExercisesPaged() }
+            pagingSourceFactory = { dao.getExercisesPaged(muscle) }
         ).flow
     }
 
+    fun getExerciseMuscles(): Flow<List<String>>{
+        return dao.getExercisesMuscles()
+    }
     fun getExerciseByID(id:String): Flow<Exercise>{
         return dao.getExerciseByID(id)
     }
@@ -126,8 +129,8 @@ class ExerciseRepo(private val context: Context) {
         return dao.getSessionExercises(date)
     }
 
-    fun searchExerciseByName(input: String): Flow<List<Exercise>>{
-        return dao.searchExerciseByName(input)
+    fun searchExerciseByNameMuscle(input: String, muscle: String): Flow<List<Exercise>>{
+        return dao.searchExerciseByNameMuscle(input, muscle)
     }
 
     suspend fun updateSessionSet(id: Long, weight: Float, reps: Int){

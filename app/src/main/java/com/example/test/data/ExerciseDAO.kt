@@ -23,8 +23,11 @@ interface ExerciseDao {
     suspend fun dbReady(): Boolean
     //
 
-    @Query("SELECT * FROM exercises ORDER BY id ASC")
-    fun getExercisesPaged(): PagingSource<Int, Exercise>
+    @Query("SELECT * FROM exercises WHERE primaryMuscles LIKE '%' || :muscle || '%' ORDER BY id ASC")
+    fun getExercisesPaged(muscle: String): PagingSource<Int, Exercise>
+
+    @Query("SELECT DISTINCT primaryMuscles FROM exercises")
+    fun getExercisesMuscles(): Flow<List<String>>
 
     @Query("SELECT * FROM exercises WHERE id = :id")
     fun getExerciseByID(id: String): Flow<Exercise>
@@ -32,8 +35,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE name = :name")
     suspend fun getExerciseByName(name: String): Exercise
 
-    @Query("SELECT * FROM exercises WHERE name LIKE '%' || :input || '%' ORDER BY name")
-    fun searchExerciseByName(input: String): Flow<List<Exercise>>
+
+    @Query("SELECT * FROM exercises WHERE name LIKE '%' || :input || '%' AND primaryMuscles LIKE '%' || :muscle || '%' ORDER BY name")
+    fun searchExerciseByNameMuscle(input: String, muscle: String): Flow<List<Exercise>>
 
     @Query("SELECT * FROM workoutSessions WHERE date = :date LIMIT 1")
     suspend fun getSessionByDate(date: String): workoutSessions?

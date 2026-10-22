@@ -2,6 +2,8 @@ package com.example.test
 
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +27,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.test.data.ExerciseViewModel
 import com.example.test.data.*
+import kotlinx.coroutines.flow.toList
 import java.net.URLEncoder
 import java.util.Calendar
 
@@ -36,11 +39,22 @@ fun ExerciseList(
 ) {
     // 1. Collect the PagingData flow into a LazyPagingItems object.
     // This automatically triggers the DB query for page 1 (first 20).
-    val exercises = viewModel.exercisesPaged.collectAsLazyPagingItems()
+
     var isSearching by remember { mutableStateOf(false) }
     val searchText by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
 
+    val muscleFilter by viewModel.muscleFilter.collectAsStateWithLifecycle()
+    val muscleList by viewModel.muscleList.collectAsStateWithLifecycle()
+
+    //    val exercises = viewModel.exercisesPaged.collectAsLazyPagingItems()
+    val exercises = key(muscleFilter) {
+        viewModel.exercisesPaged.collectAsLazyPagingItems()
+    }
+
+    BackHandler(enabled = muscleFilter.isNotEmpty()) {
+        viewModel.setMuscleFilter("")
+    }
 
     Log.d("test", "exercisellist")
     Scaffold(
@@ -62,108 +76,68 @@ fun ExerciseList(
                     viewModel.searchExerciseByName("")
                 },
                 onBackClick = {
-                    navController.popBackStack()
+                    if (muscleFilter.isNotEmpty()){
+                        viewModel.setMuscleFilter("")
+                    }
+                    else {
+                        navController.popBackStack()
+                    }
                 }
             )
         }
     ) { paddingValues ->
-        if(!isSearching) {
+        if(muscleFilter == ""
+//            !isSearching
+            ) {
+            println("muscle list $muscleList")
+            println("muscle filter $muscleFilter")
             Box(modifier = Modifier.padding(paddingValues)) {
-                // 2. Check the REFRESH state (initial load or pull-to-refresh)
-//                when (val refreshState = exercises.loadState.refresh) {
-//                    is LoadState.Loading -> {
-//                        // Full screen loader for the very first page
-//                        Box(
-//                            modifier = Modifier.fillMaxSize(),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            CircularProgressIndicator()
-//                        }
-//                    }
-//
-//                    is LoadState.Error -> {
-//                        // Full screen error if the FIRST page fails (e.g., DB corruption, but usually rare)
-//                        Column(
-//                            modifier = Modifier.fillMaxSize(),
-//                            horizontalAlignment = Alignment.CenterHorizontally,
-//                            verticalArrangement = Arrangement.Center
-//                        ) {
-//                            Text(text = "Failed to load exercises: ${refreshState.error.message}")
-//                            Spacer(modifier = Modifier.height(16.dp))
-//                            Button(onClick = { exercises.retry() }) {
-//                                Text("Retry")
-//                            }
-//                        }
-//                    }
-//
-//                    else -> {
-//                        // 3. The main list (Success state)
-                        LazyColumn(
-                            Modifier
-                                .fillMaxSize()
-                                .padding(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // Display the items (20 at a time)
-                            items(
-                                count = exercises.itemCount,
-                                key = { index -> exercises[index]?.id ?: index }
-                            ) { index ->
-                                val exercise = exercises[index]
-                                exercise?.let {
-                                    ExerciseRow(
-                                        exercise = it,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        date,
-                                        navController
-                                    )
-                                }
+                LazyColumn(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if(
+//                        muscleFilter == ""
+                        !isSearching
+                        ){
+                        items(
+                            muscleList
+                        ){ muscle ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .clickable(onClick = {
+                                        viewModel.setMuscleFilter(muscle)
+                                    })
+                            ) {
+                                Text(
+                                    text = muscle,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                )
                             }
                         }
-//
-//                            when (val appendState = exercises.loadState.append) {
-//                                is LoadState.Loading -> {
-//                                    // Footer loading spinner when scrolling down
-//                                    item {
-//                                        Box(
-//                                            modifier = Modifier
-//                                                .fillMaxWidth()
-//                                                .padding(16.dp),
-//                                            contentAlignment = Alignment.Center
-//                                        ) {
-//                                            CircularProgressIndicator()
-//                                        }
-//                                    }
-//                                }
-//
-//                                is LoadState.Error -> {
-//                                    // Footer error with retry button for the next page
-//                                    item {
-//                                        Column(
-//                                            modifier = Modifier
-//                                                .fillMaxWidth()
-//                                                .padding(16.dp),
-//                                            horizontalAlignment = Alignment.CenterHorizontally
-//                                        ) {
-//                                            Text(
-//                                                text = "Failed to load more: ${appendState.error.message}",
-//                                                color = MaterialTheme.colorScheme.error
-//                                            )
-//                                            Spacer(modifier = Modifier.height(8.dp))
-//                                            Button(onClick = { exercises.retry() }) {
-//                                                Text("Retry")
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//
-//                                else -> {}
-//                            }
-//                        }
-//                    }
-//                }
+                    }
+                    else{
+                            items(searchResults) { exercise ->
+
+                                ExerciseRow(
+                                    exercise = exercise,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    date,
+                                    navController
+                                )
+                            }
+
+                    }
+                }
             }
         }
         else {
@@ -174,25 +148,25 @@ fun ExerciseList(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-//                items(
-//                    count = exercises.itemCount,
-//                    key = { index -> exercises[index]?.id ?: index }
-//                ) { index ->
-//                    val exercise = exercises[index]
-//                    exercise?.let {
-//                        ExerciseRow(
-//                            exercise = it,
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(horizontal = 16.dp),
-//                            date,
-//                            navController
-//                        )
-//                    }
-//                }
-
-
-                items(searchResults) { exercise ->
+                if (!isSearching) {
+                    items(
+                        count = exercises.itemCount,
+                        key = { index -> exercises[index]?.id ?: index }
+                    ) { index ->
+                        val exercise = exercises[index]
+                        exercise?.let {
+                            ExerciseRow(
+                                exercise = it,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                date,
+                                navController
+                            )
+                        }
+                    }
+                } else{
+                    items(searchResults) { exercise ->
 
                         ExerciseRow(
                             exercise = exercise,
@@ -202,6 +176,7 @@ fun ExerciseList(
                             date,
                             navController
                         )
+                    }
                 }
             }
         }
@@ -255,13 +230,6 @@ fun ExerciseRow(
                         contentDescription = "Exercise Information"
                     )
                 }
-//            exercise.instructions?.let {
-//                Text(
-//                    text = it,
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
-//            }
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -29,7 +31,24 @@ import java.util.Locale
 class ExerciseViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ExerciseRepo(application)
 
-    val exercisesPaged: Flow<PagingData<Exercise>> = repository.getExercisesPaged()
+    private val _muscleFilter = MutableStateFlow("")
+    val muscleFilter: StateFlow<String> = _muscleFilter.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val exercisesPaged: Flow<PagingData<Exercise>> = _muscleFilter
+        .flatMapLatest { muscle -> repository.getExercisesPaged(muscle).cachedIn(viewModelScope) }
+
+
+
+    fun setMuscleFilter(muscle: String) {
+        _muscleFilter.value = muscle
+    }
+
+    private val _muscleList = MutableStateFlow<List<String>>(emptyList())
+    val muscleList = _muscleList.asStateFlow()
+
+
+
 
     // UI state: loading, list of exercises, error message, etc.
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
@@ -49,6 +68,11 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
 //            }
 //        }
 //    }
+    init {
+        viewModelScope.launch {
+            repository.getExerciseMuscles().collect { _muscleList.value = it }
+        }
+    }
 
     fun addUserExercise(name: String, instructions: String?) {
         viewModelScope.launch {
@@ -74,6 +98,10 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     fun getExerciseByID(ID: String): Flow<Exercise>{
         return repository.getExerciseByID(ID)
     }
+
+
+
+
 
 
     fun addSet(date: String, exerciseName: String, comment: String? = null, weight: Float, reps: Int){
@@ -106,11 +134,14 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val searchResults: StateFlow<List<Exercise>> =
-        query
-            .debounce(500.milliseconds)
+//        query
+        combine(
+            query.debounce(500.milliseconds)
+            .distinctUntilChanged(),
+            _muscleFilter){ query, muscle -> query to muscle}
             .distinctUntilChanged()
-            .flatMapLatest { query ->
-                repository.searchExerciseByName(query)
+            .flatMapLatest { (query, muscle) ->
+                repository.searchExerciseByNameMuscle(query, muscle)
             }
             .stateIn(
                 viewModelScope,
