@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,13 +33,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.test.ExerciseRow
 import com.example.test.data.Exercise
 import com.example.test.data.NutrtionData.Food
+import com.example.test.data.NutrtionData.FoodUiState
 import com.example.test.data.NutrtionData.NutritionViewModel
+import com.example.test.data.NutrtionData.UsdaFood
 import com.example.test.searchTopBar
 import java.net.URLEncoder
 
@@ -51,6 +55,9 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
     var isSearching by remember { mutableStateOf(false) }
     val searchText by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             searchTopBar(
@@ -58,7 +65,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                 isSearching = isSearching,
                 searchText = searchText,
                 onSearchTextChanged = { query ->
-                    viewModel.searchFoodByName(query)
+                    viewModel.searchUSDAFoods(query)
                 },
 
                 onSearchClick = {
@@ -67,7 +74,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 
                 onSearchCancel = {
                     isSearching = false
-                    viewModel.searchFoodByName("")
+//                    viewModel.searchFoodByName("")
                 },
                 onBackClick = {
                     navController.popBackStack()
@@ -76,33 +83,89 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
         }
     ) { paddingValues ->
         Box(Modifier.fillMaxSize().padding(paddingValues)){
-            LazyColumn(Modifier.fillMaxSize().padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-                ){
-                items(count = searchResults.size)
-                {
-                    index ->
-                    val food = searchResults[index]
-                    var ss by remember { mutableFloatStateOf(0F) }
 
-                    LaunchedEffect(food.id) {
-                        ss = viewModel.getFoodServingSize(food.id)
-                    }
-                    food.let {
-                        FoodRow(
-                            food = it,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            servingSize = ss,
-                            kcalPss = (food.kcal_100g/100*ss),
-                            date,
-                            category,
-                            navController
-                        )
+            Button(
+                onClick = {
+                    viewModel.searchUSDAFoods("Rice")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                Text("Test USDA API: Rice")
+            }
+
+            // Display the API response
+            when (val state = uiState) {
+                FoodUiState.Idle -> {
+                    Text(
+                        text = "Press the button to test USDA",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+
+                FoodUiState.Loading -> {
+                    Text(
+                        text = "Loading USDA foods...",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+
+                is FoodUiState.Success -> {
+                    Column(
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text("USDA results:")
+
+                        state.foods.forEach { food ->
+                            println(food)
+                            Text(
+                                text = ")",
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+
+                        if (state.foods.isEmpty()) {
+                            Text("No foods found.")
+                        }
                     }
                 }
+
+                is FoodUiState.Error -> {
+                    Text(
+                        text = "USDA error: ${state.message}",
+                        modifier = Modifier.padding(8.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
+//            LazyColumn(Modifier.fillMaxSize().padding(8.dp),
+//                verticalArrangement = Arrangement.spacedBy(8.dp)
+//                ){
+//                items(count = searchResults.size)
+//                {
+//                    index ->
+//                    val food = searchResults[index]
+//                    var ss by remember { mutableFloatStateOf(0F) }
+//
+//                    LaunchedEffect(food.id) {
+//                        ss = viewModel.getFoodServingSize(food.id)
+//                    }
+//                    food.let {
+//                        FoodRow(
+//                            food = it,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 16.dp),
+//                            servingSize = ss,
+//                            kcalPss = (food.kcal_100g/100*ss),
+//                            date,
+//                            category,
+//                            navController
+//                        )
+//                    }
+//                }
+//            }
         }
 
     }
@@ -111,7 +174,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 
 @Composable
 fun FoodRow(
-    food: Food,
+    food: UsdaFood,
     modifier: Modifier = Modifier,
     servingSize: Float,
     kcalPss: Float,
@@ -130,7 +193,7 @@ fun FoodRow(
 //                verticalAlignment = Alignment.CenterVertically) {
 //                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = food.name,
+                        text = food.description,
                         style = MaterialTheme.typography.titleMedium
                     )
 //                }

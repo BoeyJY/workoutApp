@@ -28,9 +28,36 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.flow.*
 
+
+sealed interface FoodUiState {
+    data object Idle : FoodUiState
+    data object Loading : FoodUiState
+    data class Success(val foods: StateFlow<List<UsdaFood>>) : FoodUiState
+    data class Error(val message: String) : FoodUiState
+}
 class NutritionViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo = NutritionRepo(application)
+    private val repo = NutritionRepo(application,
+        apiKey = )
+
+
+
+//    fun searchUSDAFoods(query: String) {
+//        if (query.isBlank()) return
+//
+//        viewModelScope.launch {
+//            _uiState.value = FoodUiState.Loading
+//
+//            try {
+//                val foods = repo.searchUSDAFoods(query)
+//                _uiState.value = FoodUiState.Success(foods)
+//            } catch (e: Exception) {
+//                _uiState.value = FoodUiState.Error(
+//                    e.message ?: "Unable to load foods"
+//                )
+//            }
+//        }
+//    }
 
 //    private val _dbState = MutableStateFlow<DbState>(DbState.Checking)
 //    val dbState: StateFlow<DbState> = _dbState.asStateFlow()
@@ -49,57 +76,34 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
 
     val searchQuery: StateFlow<String> = query
 
+
+    private val _uiState =
+        MutableStateFlow<FoodUiState>(FoodUiState.Idle)
+
+    val uiState: StateFlow<FoodUiState> =
+        _uiState.asStateFlow()
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val searchResults: StateFlow<List<Food>> =
-//        combine(_dbState,query
-//            .debounce(500.milliseconds)) { state, q -> state to q.trim()}
-//            .distinctUntilChanged()
-//            .flatMapLatest { (state, q) ->
-//                if (state !is DbState.Ready || q.length <2){
-//                    flowOf(emptyList())
-//                }
-//                else {
-//                    repo.searchFoodByName(q)
-//                }
-//            }
-//            .stateIn(
-//                viewModelScope,
-//                SharingStarted.WhileSubscribed(5000),
-//                emptyList()
-//            )
+    val searchResults: StateFlow<List<UsdaFood>> =
         query
         .debounce(500.milliseconds)
         .distinctUntilChanged()
         .flatMapLatest { query ->
-            repo.searchFoodByName(query)
+            flow {
+                if (query.isBlank()) {
+                    emit(emptyList())
+                } else {
+                    emit(repo.searchUSDAFoods(query))
+                }
+            }.catch { e ->
+                Log.e("USDA", "Search failed", e)
+                emit(emptyList())
+            }
         }
         .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         emptyList()
         )
-//
-//    init { initDatabase() }
-//
-//    private fun initDatabase() {
-//        viewModelScope.launch {
-//            _dbState.value = DbState.Checking
-//            try {
-//                if (repo.isDatabaseReady()) {
-//                    _dbState.value = DbState.Ready
-//                    return@launch
-//                }
-//                _dbState.value = DbState.Downloading(-1f)
-//                repo.ensureReady { p -> _dbState.value = DbState.Downloading(p) }
-//                _dbState.value = DbState.Ready
-//            } catch (t: Throwable) {
-//                Log.e("NutritionVM", "DB init failed", t)
-//                _dbState.value = DbState.Error(t.message ?: "Failed to load database")
-//            }
-//        }
-//    }
-//
-//    fun retry() = initDatabase()
 
     fun searchFoodByName(input: String) {
         query.value = input
