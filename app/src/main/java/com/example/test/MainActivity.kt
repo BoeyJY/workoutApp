@@ -140,6 +140,15 @@ fun MainScreen() {
                 )
             }
 
+            composable(
+                route = "ExerciseGraph/{exerciseId}",
+                arguments = listOf(navArgument("exerciseId") { defaultValue = "" })
+            ) {
+                backStackEntry ->
+                val exerciseId = backStackEntry.arguments?.getString("exerciseId") ?: ""
+                ExerciseGraph(exerciseId = exerciseId)
+            }
+
 
             composable(
                 route = "CalendarScreen"

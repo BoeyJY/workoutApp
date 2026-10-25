@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.compose.glance)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room3.common)

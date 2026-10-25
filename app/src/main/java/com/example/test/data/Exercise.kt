@@ -20,3 +20,9 @@ data class Exercise(
     val isUserCreated: Boolean = false,   // true if added by the user
     val createdAt: Long = System.currentTimeMillis()
 )
+
+
+data class MaxWeightPerDay(
+    val date: String,      // "yyyy-MM-dd" straight from SQLite
+    val weight: Float  // match your column type: Int/Float/Double
+)

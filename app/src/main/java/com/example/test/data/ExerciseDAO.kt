@@ -95,6 +95,20 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises ORDER BY name ASC")
     suspend fun getAllExercises(): List<Exercise>
 
+
+    @Query("SELECT ws.date, MAX(ss.weight) as weight FROM " +
+            "sessionSets ss INNER JOIN sessionExercises se ON ss.sessionExerciseId = se.id " +
+            "INNER JOIN workoutSessions ws on se.sessionId = ws.id " +
+            "WHERE se.exerciseId = :exId " +
+            "GROUP BY ws.date " +
+            "ORDER BY ws.date ASC")
+    suspend fun getMaxWeightPerDay(exId: String): List<MaxWeightPerDay>
+
+    @Query("SELECT id FROM exercises where name = :name")
+    suspend fun getExerciseIdByName(name: String): String
+
+
     @Query("DELETE FROM exercises WHERE isUserCreated = 1")
     suspend fun deleteAllUserCreated()   // optional, if you want to clear them
 }
+

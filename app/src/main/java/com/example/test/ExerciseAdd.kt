@@ -80,6 +80,14 @@ fun ExerciseAdd(
         .getSessionSets(date, exerciseName)
         .collectAsState(initial = emptyList())
 
+    val exerciseId = remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(exerciseName) {
+        exerciseId.value = viewModel.getExerciseIdByName(exerciseName)
+        println(exerciseId)
+    }
+
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -88,6 +96,17 @@ fun ExerciseAdd(
             onBackClick = {
                 navController.popBackStack()}
         )
+
+
+        Row(modifier = Modifier.fillMaxWidth()){
+            Button(
+                onClick = {
+                    navController.navigate("ExerciseGraph/${exerciseId.value}")
+                }
+            ) {
+                Text(text = "Graph")
+            }
+        }
 
         Column(
             modifier = Modifier
