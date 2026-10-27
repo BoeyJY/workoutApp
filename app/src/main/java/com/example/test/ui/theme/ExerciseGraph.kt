@@ -44,6 +44,7 @@ import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.Fill
@@ -105,6 +106,7 @@ private fun ComposeBasicLineChart(
 
     val persistentMarker = rememberDefaultCartesianMarker(
         label = rememberTextComponent(),
+        valueFormatter = { _, _ -> "" },
         indicator = remember {
             { color ->
                 ShapeComponent(
