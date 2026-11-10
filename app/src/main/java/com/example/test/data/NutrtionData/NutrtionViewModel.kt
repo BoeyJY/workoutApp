@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.test.data.Exercise
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -38,30 +39,38 @@ sealed interface FoodUiState {
 class NutritionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = NutritionRepo(application,
-        apiKey = )
+        apiKey = "")
 
 
 
 //    fun searchUSDAFoods(query: String) {
-//        if (query.isBlank()) return
+////        if (query.isBlank()) return
 //
 //        viewModelScope.launch {
-//            _uiState.value = FoodUiState.Loading
+////            _uiState.value = FoodUiState.Loading
 //
 //            try {
-//                val foods = repo.searchUSDAFoods(query)
-//                _uiState.value = FoodUiState.Success(foods)
+//                val response = repo.searchUSDAFoods(query)
+//                response.foods.forEach { food ->
+//                    Log.d("USDA_API", "ID: ${food.fdcId} | ${food.description} | ${food.dataType} | " +
+//                            "${food.brandOwner} | ${food.score}")
+//                }
+////                _uiState.value = FoodUiState.Success(foods)
 //            } catch (e: Exception) {
-//                _uiState.value = FoodUiState.Error(
-//                    e.message ?: "Unable to load foods"
-//                )
+////                _uiState.value = FoodUiState.Error(
+//                    Log.e("USDA Error: ", e.toString())
 //            }
 //        }
 //    }
 
+
+//    val searchResults: Flow<PagingData<UsdaFood>> = repo
+//        .searchPaginated()
+//        .cachedIn(viewModelScope)
+
 //    private val _dbState = MutableStateFlow<DbState>(DbState.Checking)
 //    val dbState: StateFlow<DbState> = _dbState.asStateFlow()
-
+//
 //    init {
 //        viewModelScope.launch {
 ////            repo.refreshFoodFromNetwork()
@@ -72,38 +81,52 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
 //
 //    }
 
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
     private val query = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = query.asStateFlow()
 
-    val searchQuery: StateFlow<String> = query
+    fun onSearchClick() {
+        _isSearching.value = true
+    }
+
+    fun onSearchCancel() {
+        query.value = ""
+        _isSearching.value = false
+    }
+
+    fun onSearchTextChanged(text: String) {
+        query.value = text
+    }
+
+//
+//    private val _uiState =
+//        MutableStateFlow<FoodUiState>(FoodUiState.Idle)
+//
+//    val uiState: StateFlow<FoodUiState> =
+//        _uiState.asStateFlow()
 
 
-    private val _uiState =
-        MutableStateFlow<FoodUiState>(FoodUiState.Idle)
 
-    val uiState: StateFlow<FoodUiState> =
-        _uiState.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val searchResults: StateFlow<List<UsdaFood>> =
+    val searchResults: Flow<PagingData<UsdaFood>> =
         query
         .debounce(500.milliseconds)
         .distinctUntilChanged()
         .flatMapLatest { query ->
-            flow {
                 if (query.isBlank()) {
-                    emit(emptyList())
+                    flowOf(PagingData.empty())
                 } else {
-                    emit(repo.searchUSDAFoods(query))
+                    repo.searchPaginated(query.trim())
                 }
-            }.catch { e ->
-                Log.e("USDA", "Search failed", e)
-                emit(emptyList())
-            }
-        }
-        .stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        emptyList()
-        )
+
+        }.cachedIn(viewModelScope)
+//        .stateIn(
+//        viewModelScope,
+//        SharingStarted.WhileSubscribed(5000),
+//        emptyList()
+//        )
 
     fun searchFoodByName(input: String) {
         query.value = input

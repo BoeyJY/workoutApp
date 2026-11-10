@@ -22,6 +22,8 @@ interface UsdaApiService {
     suspend fun searchFoods(
         @Query("query") query: String,
         @Query("api_key") apiKey: String,
+        @Query("pageNumber") pageNumber: Int = 1,
         @Query("pageSize") pageSize: Int = 20
     ): FoodSearchResponse
 }
+

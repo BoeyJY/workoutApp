@@ -86,13 +86,29 @@ class NutritionRepo(private val context: Context,
     }
 
 
-    suspend fun searchUSDAFoods(query: String): List<UsdaFood> {
+    suspend fun searchUSDAFoods(query: String): FoodSearchResponse {
         return NutritionNetworkModule.api
             .searchFoods(
                 query = query,
                 apiKey = apiKey
             )
-            .foods
+//            .foods
     }
 
+    fun searchPaginated(
+        query: String
+    ): Flow<PagingData<UsdaFood>> {
+        return Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = {
+                FoodPagingSource(
+                    NutritionNetworkModule.api,
+                    query = query,
+                    apiKey = apiKey
+                )
+            }
+        ).flow
 }
+
+
+    }
