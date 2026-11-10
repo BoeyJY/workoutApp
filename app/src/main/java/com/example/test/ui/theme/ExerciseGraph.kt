@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.test.data.ExerciseViewModel
 import com.example.test.data.MaxWeightPerDay
 import com.example.test.data.download.DownloadViewModel
@@ -47,6 +48,7 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.Fill
 import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
@@ -154,6 +156,7 @@ private fun ComposeBasicLineChart(
                 }
             ),
         modelProducer = modelProducer,
+        scrollState = rememberVicoScrollState(scrollEnabled = false),
         modifier = modifier
             .fillMaxWidth()
             .height(600.dp)
@@ -165,6 +168,7 @@ private fun ComposeBasicLineChart(
 fun ExerciseGraph(
     modifier: Modifier = Modifier,
     viewModel: ExerciseViewModel = viewModel(),
+    navController: NavController,
     exerciseId: String
 ) {
 
@@ -242,7 +246,7 @@ fun ExerciseGraph(
                     topBar(
                         "Workouts",
                         onBackClick = {
-//                    navController.popBackStack()
+                    navController.popBackStack()
                         })
                 }
             ) {

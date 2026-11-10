@@ -146,7 +146,7 @@ fun MainScreen() {
             ) {
                 backStackEntry ->
                 val exerciseId = backStackEntry.arguments?.getString("exerciseId") ?: ""
-                ExerciseGraph(exerciseId = exerciseId)
+                ExerciseGraph(exerciseId = exerciseId, navController = navController)
             }
 
 
