@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +45,12 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.test.data.ExerciseViewModel
@@ -58,8 +64,11 @@ fun ExerciseAdd(
                 exerciseName: String,
                 navController: NavController
 ){
-    var weight by remember { mutableStateOf(20f) }
-    var reps by remember { mutableStateOf(10) }
+    var weightText by remember { mutableStateOf(TextFieldValue("20.0")) }
+    var weight: Float = weightText.text.toFloatOrNull() ?: 0f
+
+    var repsText by remember { mutableStateOf(TextFieldValue("10")) }
+    var reps: Int = repsText.text.toIntOrNull() ?: 0
     var selectedRow by remember { mutableStateOf<Int?>(null) }
 
     var setComment by remember { mutableStateOf<sessionSets?>(null) }
@@ -117,16 +126,22 @@ fun ExerciseAdd(
 
             NumberInputRow(
                 label = "Weight",
-                value = weight.toString(),
+                value = weightText,
                 unit = "kg",
                 onDecrease = {
-                    weight = (weight - 2.5f).coerceAtLeast(0f)
+//                    weightText = formatWeight((weight - 2.5f).coerceAtLeast(0f))
+                    weightText = TextFieldValue((weight - 2.5f).coerceAtLeast(0f).toString())
+//                    weight = (weight - 2.5f).coerceAtLeast(0f)
                 },
                 onIncrease = {
-                    weight += 2.5f
+//                    weight += 2.5f
+                    weightText = TextFieldValue((weight + 2.5f).toString())
                 },
-                onValueChange = {
-                    weight = it.toFloatOrNull() ?: weight
+                onValueChange = { input ->
+//                    weight = it.toFloatOrNull() ?: weight
+                    if (input.text.isEmpty() || input.text.matches(Regex("""^\d*\.?\d*$"""))) {
+                        weightText = input
+                    }
                 }
             )
 
@@ -134,15 +149,17 @@ fun ExerciseAdd(
 
             NumberInputRow(
                 label = "Reps",
-                value = reps.toString(),
+                value = repsText,
                 onDecrease = {
-                    reps = (reps - 1).coerceAtLeast(1)
+                    repsText = TextFieldValue((reps - 1).coerceAtLeast(1).toString())
                 },
                 onIncrease = {
-                    reps++
+                    repsText = TextFieldValue((reps + 1).toString())
                 },
-                onValueChange = {
-                    reps = it.toIntOrNull() ?: reps
+                onValueChange = { input ->
+                    if (input.text.isEmpty() || input.text.matches(Regex("""^\d*"""))) {
+                        repsText = input
+                    }
                 }
             )
 
@@ -243,8 +260,8 @@ fun ExerciseAdd(
                         isSelected = index == selectedRow,
                         onClick = {
                             selectedRow = index
-                            weight = set.weight
-                            reps = set.reps
+                            weightText = TextFieldValue(set.weight.toString())
+                            repsText = TextFieldValue(set.reps.toString())
                         },
                         onCommentClick = {
                             setComment = set
@@ -293,12 +310,20 @@ fun ExerciseAdd(
 @Composable
 fun NumberInputRow(
     label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     unit: String? = null
 ) {
+
+    var keepSelection by remember { mutableStateOf(false) }
+
+    // Reset the flag on the next composition once selection has been applied
+    if (keepSelection) {
+        SideEffect { keepSelection = false }
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -327,10 +352,30 @@ fun NumberInputRow(
 
         OutlinedTextField(
             value = value,
-            onValueChange = onValueChange,
+            onValueChange = { newValue ->
+                if (keepSelection) {
+                    // Force select-all even if the field tried to move the cursor
+                    keepSelection = false
+                    onValueChange(
+                        newValue.copy(selection = TextRange(0, newValue.text.length))
+                    )
+                } else {
+                    onValueChange(newValue)
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .width(100.dp)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 8.dp)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        // Select all text as soon as the field gains focus
+                        onValueChange(
+                            value.copy(selection = TextRange(0, value.text.length))
+                        )
+                        keepSelection = true
+                    }
+                },
             singleLine = true,
             textStyle = LocalTextStyle.current.copy(
                 textAlign = TextAlign.Center
@@ -372,7 +417,7 @@ fun SetRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable{ onClick() }
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .then(
                 if (isSelected) Modifier

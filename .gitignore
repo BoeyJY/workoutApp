@@ -15,3 +15,5 @@
 local.properties
 .sqlite
 .idea/.name
+app/src/main/assets/
+app/src/main/java/com/example/test/assets/
