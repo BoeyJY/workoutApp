@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -21,8 +22,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -190,6 +193,40 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     fun updateLogWorkoutDate(newDate: String) {
         logWorkoutDate = newDate
     }
+
+    data class GraphUiState(
+        val isLoading: Boolean = true,
+        val data: List<MaxWeightPerDay> = emptyList(),
+        val error: String? = null
+    )
+
+    private val _graphUiState = MutableStateFlow(GraphUiState())
+    val graphUiState: StateFlow<GraphUiState> =
+        _graphUiState.asStateFlow()
+
+    fun getMaxWeightPerDay(exId: String) {
+        viewModelScope.launch {
+            _graphUiState.value = GraphUiState(isLoading = true)
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    repository.getMaxWeightPerDay(exId)
+                }
+                _graphUiState.value = GraphUiState(
+                    isLoading = false,
+                    data = result
+                )
+            } catch (e: Exception) {
+                _graphUiState.value = GraphUiState(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load workout data"
+                )
+            }
+        }
+    }
+
+    suspend fun getExerciseIdByName(name: String): String =
+        repository.getExerciseIdByName(name)
+
 
     sealed class UiState {
         object Loading : UiState()

@@ -155,6 +155,13 @@ class ExerciseRepo(private val context: Context) {
         else dao.getExerciseCardsForSession(session.id)
     }
 
+    suspend fun getMaxWeightPerDay(exId: String): List<MaxWeightPerDay> {
+        return dao.getMaxWeightPerDay(exId)
+    }
+
+    suspend fun getExerciseIdByName(name: String): String{
+        return dao.getExerciseIdByName(name)
+    }
 
 
 
