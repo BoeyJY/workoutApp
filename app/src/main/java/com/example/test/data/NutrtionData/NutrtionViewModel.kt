@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.test.BuildConfig
 import com.example.test.data.Exercise
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -39,7 +40,9 @@ sealed interface FoodUiState {
 class NutritionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = NutritionRepo(application,
-        apiKey = "")
+        apiKey =
+            BuildConfig.USDA_APIKEY
+    )
 
 
 

@@ -4,6 +4,7 @@ plugins {
 //    id("com.google.devtools.ksp")
     id("com.google.devtools.ksp")
     id("androidx.room")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -35,9 +36,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     room {
         schemaDirectory("$projectDir/schemas")
+    }
+    secrets{
+        propertiesFileName = "secrets.properties"
     }
 }
 
