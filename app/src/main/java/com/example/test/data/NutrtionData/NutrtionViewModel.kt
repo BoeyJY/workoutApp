@@ -131,6 +131,10 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
 //        emptyList()
 //        )
 
+
+    suspend fun getUsdaFoodById(id: Long): UsdaAbridgedFood{
+        return repo.getUsdaFoodById(id)
+    }
     fun searchFoodByName(input: String) {
         query.value = input
     }

@@ -1,5 +1,6 @@
 package com.example.test.nutrition
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +54,10 @@ import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.topBar
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
+import com.example.test.data.NutrtionData.FoodNutrient
+import com.example.test.data.NutrtionData.UsdaAbridgedFood
+import com.example.test.data.NutrtionData.UsdaFood
+import com.example.test.data.NutrtionData.abridgedFoodNutrient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,10 +81,15 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
     val catOptions = listOf("Other", "Breakfast", "Lunch", "Dinner")
 
     val id = foodId.toLong()
-    var selectedFood by remember{mutableStateOf<Food?>(null)}
+//    var selectedFood by remember{mutableStateOf<Food?>(null)}
+    var selectedFood by remember{mutableStateOf<UsdaAbridgedFood?>(null)}
+
     LaunchedEffect(id)
     {
-        selectedFood = viewModel.getFoodById(id)
+//        selectedFood = viewModel.getFoodById(id)
+        selectedFood = viewModel.getUsdaFoodById(id)
+        Log.d("selectedFood", selectedFood.toString())
+
         if (loggedId != null) {
 
             val updateFood = viewModel.getLoggedFoodsById(loggedId.toLong())
@@ -93,16 +103,18 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
         modifier = Modifier.fillMaxSize()
     ) {
         topBar(
-            title = selectedFood?.name ?: "error",
+//            title = selectedFood?.name ?: "error",
+            title = selectedFood?.description ?: "error",
+
             onBackClick = {
                 navController.popBackStack()
             }
         )
         Column(
             modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
@@ -233,13 +245,17 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "kcal: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                                (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                            modifier = Modifier.weight(1f),
+//                                (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                            (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+
+                    modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = "carb: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                                (selectedFood?.carbs_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                                (selectedFood?.carbs_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, "Carbohydrate, by difference")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -247,13 +263,15 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "protein: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                                (selectedFood?.protein_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                                (selectedFood?.protein_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, "Protein")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = "fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                                (selectedFood?.fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                                (selectedFood?.fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, "Total lipid (fat)")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -264,54 +282,62 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Column(modifier = Modifier.weight(1f).fillMaxWidth(),
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.Start) {
                 Text(
                     text = "fiber: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                        (selectedFood?.fiber_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                        (selectedFood?.fiber_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, "Fiber, total dietary")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 Text(
                     text = "sugar: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                        (selectedFood?.sugar_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                        (selectedFood?.sugar_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, "Sugars, Total", "Total Sugars")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 Text(
                     text = "saturated fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                        (selectedFood?.sat_fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                        (selectedFood?.sat_fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, "Fatty acids, total saturated")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 Text(
                     text = "sodium: ${String.format(LocalLocale.current.platformLocale, "%.2f",
-                        (selectedFood?.sodium_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+//                        (selectedFood?.sodium_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, "Sodium, Na")) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
+                // maybe pass in the brand name since im using the abridged version
+                // full version has the brand name
+//                Text(
+//                    text = "Brand: ${selectedFood?.brandName?: ""}",
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    modifier = Modifier.padding(vertical = 4.dp)
+//                )
+
                 Text(
-                    text = "Brand: ${selectedFood?.brand?: ""}",
+                    text = "Country: ${selectedFood?.dataType}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
-                Text(
-                    text = "Country: ${selectedFood?.country?: ""}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-
-                Text(
-                    text = "Barcode: ${selectedFood?.barcode?: ""}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+//                Text(
+//                    text = "Barcode: ${selectedFood?.barcode?: ""}",
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    modifier = Modifier.padding(vertical = 4.dp)
+//                )
             }
 
             Row(
@@ -326,13 +352,14 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         onClick = {
                             viewModel.insertLoggedFood(
                                 foodId = id,
-                                name = selectedFood?.name ?: "error",
+//                                name = selectedFood?.name ?: "error",
+                                name = selectedFood?.description ?: "error",
                                 Date = date,
                                 category = catSelectedOption,
                                 weight = amount.toFloat(),
                                 servingSize = ssSelectedOption,
-                                kcal = (selectedFood?.kcal_100g
-                                    ?: 0F) / 100 * (amount.toFloatOrNull() ?: 0F)
+                                kcal = (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")
+                                        ) / 100 * (amount.toFloatOrNull() ?: 0F)
                             )
                             navController.navigate("FoodLog?navDate=${date}")
                         },
@@ -355,8 +382,8 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                                     weight = amount.toFloat(),
                                     category = catSelectedOption,
                                     ss = ssSelectedOption,
-                                    kcal = (selectedFood?.kcal_100g
-                                        ?: 0F) / 100 * (amount.toFloatOrNull() ?: 0F),
+                                    kcal = (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")
+                                            ) / 100 * (amount.toFloatOrNull() ?: 0F),
                                     id = loggedId.toLong()
                                 )
                                 navController.navigate("FoodLog?navDate=${date}")
@@ -430,6 +457,12 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
             }
         }
     }
+}
+
+
+fun getNutrientValue(nutrients: List<abridgedFoodNutrient>?, vararg name: String): Float {
+    return nutrients?.firstOrNull { nutrient ->
+        name.any { it.equals(nutrient.name, ignoreCase = true) } }?.amount ?: 0F
 }
 
 @Preview(showBackground = true)

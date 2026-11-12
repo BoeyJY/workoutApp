@@ -5,7 +5,33 @@ data class UsdaFood(
     val description: String,
     val dataType: String,
     val brandOwner: String? = null,
-    val score: Float
+    val brandName: String? = null,
+    val score: Float? = null,
+    val servingSize: Float? = null,
+    val servingSizeUnit: String? = null,
+    val foodNutrients: List<FoodNutrient> = emptyList()
+)
+
+data class FoodNutrient(
+    val nutrientId: Int? = null,
+    val nutrientName: String? = null,
+    val value: Float? = null,
+    val unitName: String? = null
+)
+
+
+data class UsdaAbridgedFood(
+    val fdcId: Long,
+    val description: String,
+    val dataType: String,
+    val foodNutrients: List<abridgedFoodNutrient> = emptyList()
+)
+
+data class abridgedFoodNutrient(
+    val number: Float,
+    val name: String,
+    val amount: Float? = null,
+    val unitName: String
 )
 
 data class FoodSearchResponse(

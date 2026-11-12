@@ -110,5 +110,9 @@ class NutritionRepo(private val context: Context,
         ).flow
 }
 
+    suspend fun getUsdaFoodById(id: Long): UsdaAbridgedFood {
+        return NutritionNetworkModule.api.getFoodById(id, apiKey = apiKey)
+    }
+
 
     }

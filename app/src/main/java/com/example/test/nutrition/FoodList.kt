@@ -1,54 +1,33 @@
 package com.example.test.nutrition
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.test.ExerciseRow
-import com.example.test.data.Exercise
-import com.example.test.data.NutrtionData.Food
-import com.example.test.data.NutrtionData.FoodUiState
 import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.data.NutrtionData.UsdaFood
 import com.example.test.searchTopBar
-import java.net.URLEncoder
 
 @Composable
 fun FoodList(viewModel: NutritionViewModel = viewModel(),
@@ -96,16 +75,21 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                 ) {
                     items(searchResults.itemCount) { index ->
                         val food = searchResults[index]
+                        val cals: Float = food?.foodNutrients
+                            ?.firstOrNull { it.nutrientName == "Energy" }
+                            ?.value
+                            ?: 0F
                         food?.let {
                             FoodRow(
                                 food = it,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
-                                servingSize = 0f,
-                                kcalPss = 0f,
+                                servingSize = it.servingSize,
+                                kcalP100 = cals,
                                 date = date,
-                                category = it.dataType,
+                                category = category,
+                                brand = it.brandName,
                                 navController = navController
                             )
                         }
@@ -214,32 +198,41 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 fun FoodRow(
     food: UsdaFood,
     modifier: Modifier = Modifier,
-    servingSize: Float,
-    kcalPss: Float,
+    servingSize: Float?,
+    kcalP100: Float,
     date: String,
     category: String,
+    brand: String?,
     navController: NavController
 ) {
     Card(
         modifier = modifier.fillMaxWidth()
             .clickable{
-//                navController.navigate("FoodAdd/${date}/${food.id}/${category}")
+                navController.navigate("FoodAdd/${date}/${food.fdcId}/${category}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 //            Row(modifier = Modifier.fillMaxWidth(),
 //                verticalAlignment = Alignment.CenterVertically) {
 //                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = food.description,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-//                }
-                    Text(
-                        text = "${servingSize}g  ${kcalPss}kcal",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            val grams = servingSize?: 100F
+            Text(
+                text = food.description,
+                style = MaterialTheme.typography.titleMedium
+            )
+//             }
+            Text(
+                text = "${grams}g  ${kcalP100/100*grams}kcal ",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = if(brand.isNullOrEmpty()){"source: ${food.dataType}"}
+                else{"source: ${food.dataType} brand: $brand"},
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             }
         }
