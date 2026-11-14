@@ -76,8 +76,11 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                     items(searchResults.itemCount) { index ->
                         val food = searchResults[index]
                         val cals: Float = food?.foodNutrients
-                            ?.firstOrNull { it.nutrientName == "Energy" }
+                            ?.firstOrNull { it.nutrientId in setOf(1008, 2047, 2048) &&
+                                    it.unitName.equals("kcal", ignoreCase = true)}
                             ?.value
+//                            ?.firstOrNull { it.name == "Energy" }
+//                            ?.amount
                             ?: 0F
                         food?.let {
                             FoodRow(

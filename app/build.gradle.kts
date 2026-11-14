@@ -47,6 +47,7 @@ android {
 }
 
 dependencies {
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
     implementation(libs.vico.compose.glance)
