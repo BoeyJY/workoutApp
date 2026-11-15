@@ -54,6 +54,7 @@ import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.topBar
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
+import com.example.test.data.NutrtionData.CachedFoods
 import com.example.test.data.NutrtionData.FoodNutrient
 import com.example.test.data.NutrtionData.UsdaAbridgedFood
 import com.example.test.data.NutrtionData.UsdaFood
@@ -65,6 +66,8 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
             date: String,
             foodId: String,
             category: String,
+            servingSize: Float,
+            brand: String? = null,
             loggedId: String? = null,
             navController: NavController
 ) {
@@ -246,7 +249,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         Text(
                             text = "kcal: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                                (selectedFood?.kcal_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                            (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                            (getNutrientValue(selectedFood?.foodNutrients, 1008F, 2047F, 2048F, 208F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
 
                     modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
@@ -254,7 +257,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         Text(
                             text = "carb: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                                (selectedFood?.carbs_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                                (getNutrientValue(selectedFood?.foodNutrients, "Carbohydrate, by difference")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, 1005F, 205F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
 
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
@@ -264,14 +267,14 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         Text(
                             text = "protein: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                                (selectedFood?.protein_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                                (getNutrientValue(selectedFood?.foodNutrients, "Protein")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, 1003F, 203F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = "fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                                (selectedFood?.fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                                (getNutrientValue(selectedFood?.foodNutrients, "Total lipid (fat)")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                                (getNutrientValue(selectedFood?.foodNutrients, 1004F, 204F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -290,7 +293,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 Text(
                     text = "fiber: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                        (selectedFood?.fiber_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                        (getNutrientValue(selectedFood?.foodNutrients, "Fiber, total dietary")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, 1079F, 291F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -298,7 +301,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 Text(
                     text = "sugar: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                        (selectedFood?.sugar_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                        (getNutrientValue(selectedFood?.foodNutrients, "Sugars, Total", "Total Sugars")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, 1063F, 2000F, 269F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -306,7 +309,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 Text(
                     text = "saturated fat: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                        (selectedFood?.sat_fat_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                        (getNutrientValue(selectedFood?.foodNutrients, "Fatty acids, total saturated")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, 1258F, 606F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -314,18 +317,18 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 Text(
                     text = "sodium: ${String.format(LocalLocale.current.platformLocale, "%.2f",
 //                        (selectedFood?.sodium_100g?: 0F) / 100 * (amount.toFloatOrNull()?: 0F))}",
-                        (getNutrientValue(selectedFood?.foodNutrients, "Sodium, Na")) / 100 * (amount.toFloatOrNull()?: 0F))}",
+                        (getNutrientValue(selectedFood?.foodNutrients, 1093F, 307F)) / 100 * (amount.toFloatOrNull()?: 0F))}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 // maybe pass in the brand name since im using the abridged version
                 // full version has the brand name
-//                Text(
-//                    text = "Brand: ${selectedFood?.brandName?: ""}",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.padding(vertical = 4.dp)
-//                )
+                Text(
+                    text = "Brand: $brand",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 Text(
                     text = "Country: ${selectedFood?.dataType}",
@@ -347,6 +350,31 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
+                val touchCache = CachedFoods(
+                    id = selectedFood?.fdcId ?: 0L,
+                    description = selectedFood?.description ?: "error",
+                    dataType = selectedFood?.dataType ?: "error",
+                    brandName = brand,
+                    servingSize = servingSize,
+                    protein = getNutrientValue(selectedFood?.foodNutrients, 1003F, 203F),
+                    totalLipid = getNutrientValue(selectedFood?.foodNutrients, 1004F, 204F),
+                    carbs = getNutrientValue(selectedFood?.foodNutrients, 1005F, 205F),
+                    kcal = getNutrientValue(selectedFood?.foodNutrients, 1008F, 2047F, 2048F, 208F),
+                    sugars = getNutrientValue(selectedFood?.foodNutrients, 1063F, 2000F, 269F),
+                    fiber = getNutrientValue(selectedFood?.foodNutrients, 1079F, 291F),
+                    calcium = getNutrientValue(selectedFood?.foodNutrients, 1087F, 301F),
+                    iron = getNutrientValue(selectedFood?.foodNutrients, 1089F, 303F),
+                    potassium = getNutrientValue(selectedFood?.foodNutrients, 1092F, 306F),
+                    sodium = getNutrientValue(selectedFood?.foodNutrients, 1093F, 307F),
+                    vitaminA = getNutrientValue(selectedFood?.foodNutrients, 1106F, 318F),
+                    vitaminC = getNutrientValue(selectedFood?.foodNutrients, 1162F, 401F),
+                    thiamin = getNutrientValue(selectedFood?.foodNutrients, 1165F, 404F),
+                    niacin = getNutrientValue(selectedFood?.foodNutrients, 1167F, 406F),
+                    folate = getNutrientValue(selectedFood?.foodNutrients, 1177F, 417F),
+                    cholesterol = getNutrientValue(selectedFood?.foodNutrients, 1253F, 601F),
+                    transFat = getNutrientValue(selectedFood?.foodNutrients, 1257F, 605F),
+                    saturatedFat = getNutrientValue(selectedFood?.foodNutrients, 1258F, 606F),
+                )
                 if(loggedId == null) {
                     Button(
                         onClick = {
@@ -358,9 +386,12 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                                 category = catSelectedOption,
                                 weight = amount.toFloat(),
                                 servingSize = ssSelectedOption,
-                                kcal = (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")
+                                kcal = (getNutrientValue(selectedFood?.foodNutrients, 1008F, 2047F, 2048F, 208F)
                                         ) / 100 * (amount.toFloatOrNull() ?: 0F)
+
+                                
                             )
+                            viewModel.insertWithEviction(touchCache)
                             navController.navigate("FoodLog?navDate=${date}")
                         },
                         enabled = (amount.toFloatOrNull() ?: 0f) > 0
@@ -382,10 +413,13 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                                     weight = amount.toFloat(),
                                     category = catSelectedOption,
                                     ss = ssSelectedOption,
-                                    kcal = (getNutrientValue(selectedFood?.foodNutrients, "Energy", "Energy (Atwater General Factors)")
+                                    kcal = (getNutrientValue(selectedFood?.foodNutrients, 1008F, 2047F, 2048F, 208F)
                                             ) / 100 * (amount.toFloatOrNull() ?: 0F),
                                     id = loggedId.toLong()
                                 )
+//                               // maybe instead of using the details from the api call(like the add button does)
+                                // use
+                                viewModel.insertWithEviction(touchCache)
                                 navController.navigate("FoodLog?navDate=${date}")
                             },
                             enabled = (amount.toFloatOrNull() ?: 0f) > 0
@@ -460,9 +494,9 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 }
 
 
-fun getNutrientValue(nutrients: List<abridgedFoodNutrient>?, vararg name: String): Float {
+fun getNutrientValue(nutrients: List<abridgedFoodNutrient>?, vararg number: Float): Float {
     return nutrients?.firstOrNull { nutrient ->
-        name.any { it.equals(nutrient.name, ignoreCase = true) } }?.amount ?: 0F
+        number.any { it.equals(nutrient.number) } }?.amount ?: 0F
 }
 
 @Preview(showBackground = true)
@@ -470,6 +504,6 @@ fun getNutrientValue(nutrients: List<abridgedFoodNutrient>?, vararg name: String
 fun FoodAddPreview() {
     val navController = rememberNavController()
     MaterialTheme{
-        FoodAdd(date = "2099-12-31",foodId = "", category = "Breakfast", navController = navController)
+        FoodAdd(date = "2099-12-31",foodId = "", category = "Breakfast", servingSize = 100F, navController = navController)
     }
 }

@@ -115,4 +115,16 @@ class NutritionRepo(private val context: Context,
     }
 
 
+    suspend fun insertCacheFood(cachedFood: CachedFoods){
+        dao.insert(cachedFood)
+    }
+
+    suspend fun updateCacheTouch(cacheId: Long){
+        dao.updateCacheTouch(cacheId)
+    }
+
+    suspend fun insertWithEviction(cachedFood: CachedFoods){
+        dao.insertWithEviction(cachedFood)
+    }
+
     }

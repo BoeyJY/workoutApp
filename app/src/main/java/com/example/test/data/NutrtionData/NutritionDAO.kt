@@ -2,7 +2,10 @@ package com.example.test.data.NutrtionData
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
+import androidx.room3.Transaction
 import com.example.test.data.Exercise
 import kotlinx.coroutines.flow.Flow
 
@@ -45,6 +48,40 @@ interface NutritionDAO{
             "ON lf.foodId = f.id WHERE date = :date")
     suspend fun getDailyMacros(date: String): DailyMacros
 
+
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(food: CachedFoods)
+
+    @Query("UPDATE CachedFoods SET lastUsed = :lastUsed WHERE id = :cacheFoodId")
+    suspend fun updateCacheTouch(
+        cacheFoodId: Long,
+        lastUsed: Long = System.currentTimeMillis())
+
+    @Query("SELECT COUNT(*) FROM CachedFoods")
+    suspend fun count(): Int
+
+    @Query("""
+        DELETE FROM CachedFoods
+        WHERE id IN (
+            SELECT id FROM CachedFoods
+            ORDER BY lastUsed ASC
+            LIMIT :n
+        )
+    """)
+    suspend fun deleteOldest(n: Int)
+
+    @Transaction
+    suspend fun insertWithEviction(food: CachedFoods, max: Int = 10) {
+        insert(food)
+        updateCacheTouch(food.id)
+
+        val n = count()
+
+        if (n > max) {
+            deleteOldest(n - max)
+        }
+    }
 }
 
 data class DailyMacros(

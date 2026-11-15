@@ -208,6 +208,27 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+
+
+
+    fun insertCachedFood(cachedFood: CachedFoods){
+        viewModelScope.launch{
+            repo.insertCacheFood(cachedFood)
+        }
+    }
+
+    fun updateCacheTouch(cacheId: Long){
+        viewModelScope.launch{
+            repo.updateCacheTouch(cacheId)
+        }
+    }
+
+    fun insertWithEviction(cachedFood: CachedFoods){
+        viewModelScope.launch{
+            repo.insertWithEviction(cachedFood)
+        }
+    }
+
 }
 //
 //sealed interface DbState {

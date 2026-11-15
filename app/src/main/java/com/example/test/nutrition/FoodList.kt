@@ -211,7 +211,8 @@ fun FoodRow(
     Card(
         modifier = modifier.fillMaxWidth()
             .clickable{
-                navController.navigate("FoodAdd/${date}/${food.fdcId}/${category}")
+                navController.navigate(
+                    "FoodAdd/${date}/${food.fdcId}/${category}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

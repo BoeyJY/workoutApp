@@ -11,8 +11,9 @@ import java.io.File
     food_aliases::class,
     food_barcodes::class,
     food_servings::class,
+    CachedFoods::class,
     logged_foods::class
-], version = 3, exportSchema = false)
+], version = 4, exportSchema = false)
 
 abstract class FoodDB : RoomDatabase(){
     abstract fun NutritionDAO() : NutritionDAO

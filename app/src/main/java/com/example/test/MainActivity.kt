@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -87,22 +88,33 @@ fun MainScreen() {
                 FoodList(date = date, category = category, navController = navController)
             }
 
-            composable ("FoodAdd/{date}/{foodId}/{category}?loggedId={loggedId}",
+            composable ("FoodAdd/{date}/{foodId}/{category}?servingSize={servingSize}&brand={brand}&loggedId={loggedId}",
                 arguments = listOf(navArgument("date") { defaultValue = "" },
                         navArgument("foodId") { defaultValue = "" },
                     navArgument("category") { defaultValue = "Other" },
+                    navArgument("servingSize") {
+                        type = NavType.FloatType
+                        defaultValue = 100F },
+                    navArgument("brand") {
+                        nullable = true
+                        defaultValue = null },
                     navArgument("loggedId") {
                         nullable = true
-                        defaultValue = null }))
+                        defaultValue = null }
+                    ))
             {
                 backStackEntry ->
                 val date = backStackEntry.arguments?.getString("date") ?: ""
                 val foodId = backStackEntry.arguments?.getString("foodId") ?: ""
                 val category = backStackEntry.arguments?.getString("category") ?: ""
+                val servingSize = backStackEntry.arguments?.getFloat("servingSize")?: 100F
+                val brand = backStackEntry.arguments?.getString("brand")
                 val loggedId = backStackEntry.arguments?.getString("loggedId")
                 FoodAdd(date = date,
                     foodId = foodId,
                     category = category,
+                    servingSize = servingSize,
+                    brand = brand,
                     loggedId = loggedId,
                     navController = navController)
             }
