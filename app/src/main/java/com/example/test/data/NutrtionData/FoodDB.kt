@@ -31,7 +31,7 @@ fun getInstance(context: Context): FoodDB =
             FoodDB::class.java,
             "nutrition" // The name of the Room database
         )
-            .fallbackToDestructiveMigration(true)
+//            .fallbackToDestructiveMigration(true)
 //            .createFromAsset("lethio_db.sqlite")
             .build()
         INSTANCE = instance
