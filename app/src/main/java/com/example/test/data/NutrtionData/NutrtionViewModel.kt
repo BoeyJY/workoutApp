@@ -170,17 +170,43 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    private val _foodLoadState = MutableStateFlow<FoodLoadState>(FoodLoadState.Loading)
+    val foodLoadState: StateFlow<FoodLoadState> = _foodLoadState.asStateFlow()
+
+
+    fun loadFood(id: Long){
+        viewModelScope.launch {
+            _foodLoadState.value = FoodLoadState.Loading
+            val cachedFood = getCachedFoodById(id)
+            if (cachedFood != null) {
+                _foodLoadState.value = FoodLoadState.Success(cachedFood)
+                return@launch
+            }
+
+            try {
+                val apiFood = getUsdaFoodById(id)
+                _foodLoadState.value = FoodLoadState.Success(apiFood)
+            } catch (e: Exception) {
+                _foodLoadState.value = FoodLoadState.Error(
+                    "Unable to load food. You may be offline, and this item is not saved in your history."
+                )
+            }
+        }
+
+    }
+
+
     fun searchFoodByName(input: String) {
         query.value = input
     }
-
-    suspend fun getFoodServingSize(foodId: Long): Float {
-        return repo.getFoodServingSize(foodId)
-    }
-
-    suspend fun getFoodById(foodId: Long): Food{
-        return repo.getFoodById(foodId)
-    }
+//
+//    suspend fun getFoodServingSize(foodId: Long): Float {
+//        return repo.getFoodServingSize(foodId)
+//    }
+//
+//    suspend fun getFoodById(foodId: Long): Food{
+//        return repo.getFoodById(foodId)
+//    }
 
     var logFoodDate by mutableStateOf(
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -198,10 +224,13 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         category: String,
         weight: Float,
         servingSize: String,
-        kcal: Float
+        kcal: Float,
+        carbs: Float,
+        protein: Float,
+        fat: Float
     ){
         viewModelScope.launch{
-            repo.insertLoggedFood(foodId, name, Date, category, weight, servingSize, kcal)
+            repo.insertLoggedFood(foodId, name, Date, category, weight, servingSize, kcal, carbs, protein, fat)
         }
     }
 
@@ -212,10 +241,21 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     var dailyMacros by mutableStateOf(DailyMacros(0F, 0F, 0F, 0F))
         private set
 
+    fun List<logged_foods>.calculateTotals(): DailyMacros {
+        return DailyMacros (
+            cal = sumOf { it.kcal.toDouble() }.toFloat(),
+            carb = sumOf { it.carbs.toDouble() }.toFloat(),
+            protein = sumOf { it.protein.toDouble() }.toFloat(),
+            fat = sumOf { it.fat.toDouble() }.toFloat()
+        )
+
+    }
+
     fun getLoggedFoodsByDate(date: String){
         viewModelScope.launch{
             dishes = repo.getLoggedFoodsByDate(date)
-            dailyMacros = repo.getDailyMacros(date)
+//            dailyMacros = repo.getDailyMacros(date)
+            dailyMacros = dishes.calculateTotals()
         }
     }
 
@@ -231,9 +271,12 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         category: String,
         ss: String,
         kcal: Float,
-        id: Long){
+        id: Long,
+        carbs: Float,
+        protein: Float,
+        fat: Float){
         viewModelScope.launch {
-            repo.updateLoggedFood(weight, category, ss, kcal, id)
+            repo.updateLoggedFood(weight, category, ss, kcal, id, carbs, protein, fat)
         }
     }
 
@@ -265,13 +308,9 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
 }
-//
-//sealed interface DbState {
-//    /** Checking whether the file exists — usually a few ms. */
-//    data object Checking : DbState
-//    /** Download in flight. progress in 0f..1f, or -1f when the size is unknown. */
-//    data class Downloading(val progress: Float) : DbState
-//    /** DB is on disk, Room can be opened. This is the only state in which search works. */
-//    data object Ready : DbState
-//    data class Error(val message: String) : DbState
-//}
+
+sealed interface FoodLoadState {
+    data object Loading : FoodLoadState
+    data class Success(val food: UsdaAbridgedFood) : FoodLoadState
+    data class Error(val message: String) : FoodLoadState
+}

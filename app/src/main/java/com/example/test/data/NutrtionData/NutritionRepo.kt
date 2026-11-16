@@ -32,18 +32,18 @@ class NutritionRepo(private val context: Context,
     private val mutex = Mutex()
 
     private val dao = FoodDB.getInstance(context).NutritionDAO()
-
-    fun searchFoodByName(input: String): Flow<List<Food>>{
-        return dao.searchFoodByName(input)
-    }
-
-    suspend fun getFoodServingSize(foodId: Long): Float{
-        return dao.getFoodServingSize(foodId)
-    }
-
-    suspend fun getFoodById(foodId: Long): Food{
-        return dao.getFoodById(foodId)
-    }
+//
+//    fun searchFoodByName(input: String): Flow<List<Food>>{
+//        return dao.searchFoodByName(input)
+//    }
+//
+//    suspend fun getFoodServingSize(foodId: Long): Float{
+//        return dao.getFoodServingSize(foodId)
+//    }
+//
+//    suspend fun getFoodById(foodId: Long): Food{
+//        return dao.getFoodById(foodId)
+//    }
 
     suspend fun insertLoggedFood(
         foodId: Long,
@@ -52,7 +52,10 @@ class NutritionRepo(private val context: Context,
         category: String,
         weight: Float,
         servingSize: String,
-        kcal: Float
+        kcal: Float,
+        carbs: Float,
+        protein: Float,
+        fat: Float
     ){
         val loggedFoodsEntity = logged_foods(
             foodId = foodId,
@@ -61,7 +64,10 @@ class NutritionRepo(private val context: Context,
             category = category,
             weight = weight,
             servingSize = servingSize,
-            kcal = kcal
+            kcal = kcal,
+            carbs = carbs,
+            protein = protein,
+            fat = fat
         )
         dao.insertLoggedFood(loggedFoodsEntity)
     }
@@ -71,31 +77,39 @@ class NutritionRepo(private val context: Context,
         return dao.getLoggedFoodsByDate(date)
     }
 
-    suspend fun getDailyMacros(date: String): DailyMacros{
-        return dao.getDailyMacros(date)
-    }
+//    suspend fun getDailyMacros(date: String): DailyMacros{
+//        return dao.getDailyMacros(date)
+//    }
 
     suspend fun getLoggedFoodsById(id: Long): logged_foods{
         return dao.getLoggedFoodsById(id)
     }
 
-    suspend fun updateLoggedFood(weight: Float, category: String, ss: String, kcal: Float, id: Long){
-        dao.updateLoggedFood(weight, category, ss, kcal, id)
+    suspend fun updateLoggedFood(
+        weight: Float,
+        category: String,
+        ss: String,
+        kcal: Float,
+        id: Long,
+        carbs: Float,
+        protein: Float,
+        fat: Float){
+        dao.updateLoggedFood(weight, category, ss, kcal, id, carbs, protein, fat)
     }
 
     suspend fun deleteLoggedFood(id: Long){
         dao.deleteLoggedFood(id)
     }
 
-
-    suspend fun searchUSDAFoods(query: String): FoodSearchResponse {
-        return NutritionNetworkModule.api
-            .searchFoods(
-                query = query,
-                apiKey = apiKey
-            )
-//            .foods
-    }
+//
+//    suspend fun searchUSDAFoods(query: String): FoodSearchResponse {
+//        return NutritionNetworkModule.api
+//            .searchFoods(
+//                query = query,
+//                apiKey = apiKey
+//            )
+////            .foods
+//    }
 
     fun searchPaginated(
         query: String

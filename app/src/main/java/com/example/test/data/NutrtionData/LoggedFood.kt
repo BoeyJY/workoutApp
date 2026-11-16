@@ -14,5 +14,8 @@ data class logged_foods (
     val category: String,
     val weight: Float,
     val servingSize: String,
-    val kcal: Float
+    val kcal: Float,
+    val carbs: Float,
+    val protein: Float,
+    val fat: Float
 )

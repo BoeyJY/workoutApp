@@ -7,13 +7,14 @@ import android.content.Context
 import java.io.File
 
 @Database(entities =
-[   Food::class,
-    food_aliases::class,
-    food_barcodes::class,
-    food_servings::class,
+[
+//    Food::class,
+//    food_aliases::class,
+//    food_barcodes::class,
+//    food_servings::class,
     CachedFoods::class,
     logged_foods::class
-], version = 4, exportSchema = false)
+], version = 5, exportSchema = false)
 
 abstract class FoodDB : RoomDatabase(){
     abstract fun NutritionDAO() : NutritionDAO
@@ -28,10 +29,10 @@ fun getInstance(context: Context): FoodDB =
         val instance = Room.databaseBuilder(
             context.applicationContext,
             FoodDB::class.java,
-            "lethio_db" // The name of the Room database
+            "nutrition" // The name of the Room database
         )
-//            .fallbackToDestructiveMigration(true)
-            .createFromAsset("lethio_db.sqlite")
+            .fallbackToDestructiveMigration(true)
+//            .createFromAsset("lethio_db.sqlite")
             .build()
         INSTANCE = instance
         instance
