@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.room.util.copy
 import com.example.test.nutrition.FoodAdd
 import com.example.test.nutrition.FoodList
 import com.example.test.nutrition.FoodLog
@@ -163,9 +164,18 @@ fun MainScreen() {
 
 
             composable(
-                route = "CalendarScreen"
-            ) {
-                CalendarScreen(navController = navController)
+                route = "CalendarScreen?navDate={navDate}&copy={copy}",
+                arguments = listOf(navArgument("navDate") {
+                    nullable = true
+                    defaultValue = null },
+                    navArgument("copy") {
+                        type = NavType.BoolType
+                        defaultValue = false })
+            ){
+                backStackEntry ->
+                val navDate = backStackEntry.arguments?.getString("navDate")
+                val copy = backStackEntry.arguments?.getBoolean("copy")?: false
+                CalendarScreen(navController = navController, navDate = navDate, copy = copy)
             }
         }
     }

@@ -51,6 +51,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.test.data.ExerciseViewModel
@@ -102,14 +103,14 @@ fun ExerciseAdd(
     ) {
         topBar(
             title = "Add ${exerciseName}",
-            onBackClick = {
+            onBackClick = dropUnlessResumed{
                 navController.popBackStack()}
         )
 
 
         Row(modifier = Modifier.fillMaxWidth()){
             Button(
-                onClick = {
+                onClick = dropUnlessResumed{
                     navController.navigate("ExerciseGraph/${exerciseId.value}")
                 }
             ) {

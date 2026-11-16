@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -75,7 +76,7 @@ fun ExerciseList(
                     isSearching = false
                     viewModel.searchExerciseByName("")
                 },
-                onBackClick = {
+                onBackClick = dropUnlessResumed{
                     if (muscleFilter.isNotEmpty()){
                         viewModel.setMuscleFilter("")
                     }
@@ -208,7 +209,7 @@ fun ExerciseRow(
                     }
                 }
                 IconButton(
-                    onClick = {
+                    onClick = dropUnlessResumed{
                         val encodedName = URLEncoder.encode(exercise.name, "UTF-8")
                         navController.navigate("ExerciseAdd/${date}/${encodedName}")
                     }, modifier = Modifier.size(48.dp)
@@ -221,7 +222,7 @@ fun ExerciseRow(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(
-                    onClick = {
+                    onClick = dropUnlessResumed{
                         navController.navigate("ExerciseDetails/${exercise.id}")
                     }, modifier = Modifier.size(48.dp)
                 ) {

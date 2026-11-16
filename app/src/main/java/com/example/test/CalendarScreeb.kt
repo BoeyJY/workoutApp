@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.CommentBank
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,8 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import java.time.YearMonth
@@ -57,7 +57,9 @@ import com.example.test.data.ExerciseViewModel
 
 @Composable
 fun CalendarScreen(viewModel: ExerciseViewModel = viewModel(),
-                   navController: NavController){
+                   navController: NavController,
+                   navDate: String? = null,
+                   copy: Boolean = false){
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
@@ -65,8 +67,8 @@ fun CalendarScreen(viewModel: ExerciseViewModel = viewModel(),
 
     Scaffold(
         topBar = {
-            topBar("Workouts",
-                onBackClick = {
+            topBar(if (!copy){"Calendar"} else{"Choose a date to copy"},
+                onBackClick = dropUnlessResumed{
                 navController.popBackStack()})
         }
     ) {
@@ -152,6 +154,8 @@ fun CalendarScreen(viewModel: ExerciseViewModel = viewModel(),
                     date = popUpDate!!,
                     viewModel = viewModel,
                     onDismiss = { popUpDate = null },
+                    navDate = navDate,
+                    copy = copy,
 //                    onNavigateToDetails = {
 //                        // Dismiss popup and navigate
 //                        popUpDate = null
@@ -173,6 +177,8 @@ fun DatePopupDialog(
     date: String,
     viewModel: ExerciseViewModel,
     onDismiss: () -> Unit,
+    navDate: String?,
+    copy: Boolean,
 //    onNavigateToDetails: (String) -> Unit,
     navController: NavController
 ) {
@@ -269,23 +275,56 @@ fun DatePopupDialog(
                 }
 
                 // --- BUTTONS BENEATH THE LIST ---
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.End // Align buttons to the right
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Close")
-                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        if(copy && !navDate.isNullOrEmpty()) {
+                            if(viewModel.isCopying){
+                                CircularProgressIndicator()
+                            } else {
+                                TextButton(onClick = onDismiss) {
+                                    Text("Close")
+                                }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
 
-                    Button(onClick = { navController.navigate("LogWorkout?navDate=$date") }) {
-                        Text("Full Details")
+                                Button(onClick = dropUnlessResumed{
+
+                                    viewModel.copyPreviousWorkout(sets, navDate) {
+
+                                        navController.navigate("LogWorkout?navDate=$navDate"){
+                                            popUpTo("HomePage") { inclusive = false }
+                                        }
+                                        onDismiss()
+
+                                    }
+                                }) {
+                                    Text("Copy to today")
+                                }
+                            }
+                        } else {
+                            TextButton(onClick = onDismiss) {
+                                Text("Close")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Button(onClick = dropUnlessResumed{
+
+                                navController.navigate("LogWorkout?navDate=$date")
+                                onDismiss()
+                            }) {
+                                Text("Full Details")
+                            }
+                        }
+
+
                     }
                 }
-            }
+
         }
     }
 }

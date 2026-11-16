@@ -27,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.test.data.ExerciseViewModel
@@ -245,7 +246,7 @@ fun ExerciseGraph(
                 topBar = {
                     topBar(
                         "Workouts",
-                        onBackClick = {
+                        onBackClick = dropUnlessResumed{
                     navController.popBackStack()
                         })
                 }

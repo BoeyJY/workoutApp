@@ -120,6 +120,8 @@ class ExerciseRepo(private val context: Context) {
         dao.insertSet(setEntity)
     }
 
+
+
     fun getSessionSets(date: String, exerciseName: String): Flow<List<sessionSets>>{
 //        var exercise = dao.getExerciseByName(exerciseName)
         return dao.getSessionSet(date = date, exerciseName = exerciseName)

@@ -114,6 +114,32 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     }
 
 
+    var isCopying by mutableStateOf(false)
+        private set
+     fun copyPreviousWorkout(items: List<(dailyExerciseCard)>,
+                             navDate: String,
+                             onComplete: () -> Unit){
+        viewModelScope.launch {
+
+            isCopying = true
+            try {
+                items.forEach { set ->
+                    repository.saveSessionExercises(
+                        navDate,
+                        exerciseName = set.name,
+                        comment = set.comment,
+                        weight = set.weight,
+                        reps = set.reps
+                    )
+                }
+                onComplete()
+            } finally{
+                isCopying = false
+            }
+        }
+    }
+
+
 
     fun getSessionSets(date: String, exerciseName: String):Flow<List<sessionSets>> {
 //        viewModelScope.launch {

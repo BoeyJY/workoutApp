@@ -3,6 +3,7 @@ package com.example.test
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -56,10 +57,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CommentBank
+import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -120,7 +123,7 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                 TopBarIcon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = "Calendar",
-                    onClick = { navController.navigate("CalendarScreen") }
+                    onClick = dropUnlessResumed{ navController.navigate("CalendarScreen") }
                 )
             }
         }
@@ -208,12 +211,12 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                             val encodedName = URLEncoder.encode(name, "UTF-8")
                             Card(
                                 modifier = Modifier.fillMaxWidth()
-                                    .clickable{
+                                    .clickable(onClick = dropUnlessResumed{
                                         val date = SimpleDateFormat(
                                             "yyyy-MM-dd"
                                         ).format(date.time)
                                         navController.navigate("ExerciseAdd/${date}/${encodedName}")
-                                    },
+                                    } ) ,
                                 shape = RoundedCornerShape(12.dp),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
@@ -270,9 +273,19 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                         }
                     }
                 }
-
+                Column(
+                    modifier =
+                        if(sets.isEmpty()){
+                        Modifier.align(Alignment.Center)}
+                    else{
+                        Modifier.align(Alignment.BottomEnd)
+                    }
+                        ,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Button(
-                        onClick = {
+                        onClick = dropUnlessResumed {
                             val date = SimpleDateFormat(
                                 "yyyy-MM-dd"
                             ).format(date.time)
@@ -280,11 +293,11 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                         },
                         modifier = if (sets.isEmpty()) {
                             Modifier
-                                .align(Alignment.Center)
+//                                .align(Alignment.Center)
                                 .size(80.dp)
                         } else {
                             Modifier
-                                .align(Alignment.BottomEnd)
+//                                .align(Alignment.BottomEnd)
                                 .padding(16.dp)
                                 .size(64.dp)
                         },
@@ -295,7 +308,34 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                             fontSize = if (sets.isEmpty()) 32.sp else 28.sp
                         )
                     }
+                    if (sets.isEmpty()) {
+                        OutlinedButton(
+                            onClick = dropUnlessResumed {
+                                val date = SimpleDateFormat(
+                                    "yyyy-MM-dd"
+                                ).format(date.time)
+                                navController.navigate("CalendarScreen?navDate=$date&copy=${true}")
+                            },
+                            modifier =
+                                Modifier
+                                    .size(80.dp),
+                            shape = CircleShape,
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CopyAll,
+                                contentDescription = "Copy previous workout",
+                                tint = Color.White
+                            )
+                        }
+                    }
                 }
+            }
 
 
             }
