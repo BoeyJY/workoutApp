@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -257,8 +258,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                         if (dishesInMeal.isNotEmpty()){
                             items(dishesInMeal.toList()){ dish ->
                                 Surface(
-                                    onClick = {
-                                        //TODO
+                                    onClick = dropUnlessResumed{
                                         navController.navigate(
                                             "foodAdd/${dish.Date}/${dish.foodId}/${dish.category}?loggedId=${dish.id}")
                                     },
@@ -283,7 +283,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
                     }
                 }
                 Button(
-                    onClick = {
+                    onClick = dropUnlessResumed {
                         val date = SimpleDateFormat(
                             "yyyy-MM-dd"
                         ).format(date.time)
@@ -332,7 +332,7 @@ fun Category(
                 text = title,
                 style = MaterialTheme.typography.titleMedium
             )
-            IconButton(onClick = {
+            IconButton(onClick = dropUnlessResumed{
                         navController.navigate("FoodList/${date}?category=$title")
                  }
             ) {

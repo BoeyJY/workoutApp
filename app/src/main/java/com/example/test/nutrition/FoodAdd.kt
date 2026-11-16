@@ -57,6 +57,7 @@ import com.example.test.topBar
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import com.example.test.data.NutrtionData.CachedFoods
 import com.example.test.data.NutrtionData.FoodLoadState
 import com.example.test.data.NutrtionData.FoodNutrient
@@ -122,7 +123,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                 else -> "Loading..."
             },
 
-            onBackClick = {
+            onBackClick = dropUnlessResumed{
                 navController.popBackStack()
             }
         )
@@ -152,7 +153,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { navController.popBackStack() }) {
+                        TextButton(onClick = dropUnlessResumed{ navController.popBackStack() }) {
                             Text("Back")
                         }
                     }
@@ -526,7 +527,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                         )
                         if (loggedId == null) {
                             Button(
-                                onClick = {
+                                onClick = dropUnlessResumed{
                                     viewModel.insertLoggedFood(
                                         foodId = id,
 //                                name = selectedFood.name ?: "error",
@@ -579,7 +580,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                             ) {
                                 Button(
                                     modifier = Modifier.weight(1f),
-                                    onClick = {
+                                    onClick = dropUnlessResumed{
                                         viewModel.updateLoggedFood(
                                             weight = amount.toFloat(),
                                             category = catSelectedOption,
@@ -637,7 +638,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
 
                                 Button(
                                     modifier = Modifier.weight(1f),
-                                    onClick = {
+                                    onClick = dropUnlessResumed{
                                         navController.popBackStack()
                                     }
                                 ) {
@@ -661,7 +662,7 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
                                         },
                                         confirmButton = {
                                             TextButton(
-                                                onClick = {
+                                                onClick = dropUnlessResumed{
                                                     showDialog = false
                                                     viewModel.deleteLoggedFood(
                                                         id = loggedId.toLong()

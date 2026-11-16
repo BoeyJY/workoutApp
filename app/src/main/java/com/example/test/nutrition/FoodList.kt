@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -71,7 +72,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 
                 onSearchCancel = viewModel::onSearchCancel,
 
-                onBackClick = {
+                onBackClick = dropUnlessResumed{
                     navController.popBackStack()
                 }
             )
@@ -272,7 +273,7 @@ fun FoodRow(
         Card(
             modifier = modifier.fillMaxWidth()
                 .combinedClickable(
-                    onClick = {
+                    onClick = dropUnlessResumed{
                         navController.navigate(
                             "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}"
                         )
