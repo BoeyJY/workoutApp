@@ -27,9 +27,6 @@ class NutritionRepo(private val context: Context,
                     private val apiKey: String
 ) {
 
-    private val dbName = "lethio-food-db.sqlite"
-    private val dbFile: File get() = context.getDatabasePath(dbName)
-    private val mutex = Mutex()
 
     private val dao = FoodDB.getInstance(context).NutritionDAO()
 //
@@ -139,6 +136,10 @@ class NutritionRepo(private val context: Context,
 
     suspend fun getCachedFoodById(id: Long): UsdaAbridgedFood?{
         return dao.getCachedFoodById(id)?.toUsdaAbridgedFood()
+    }
+
+    suspend fun deleteFromCache(id: Long){
+        dao.deleteFromCache(id)
     }
 
     fun CachedFoods.toUsdaAbridgedFood(): UsdaAbridgedFood{

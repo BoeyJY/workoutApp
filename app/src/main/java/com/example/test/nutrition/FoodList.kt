@@ -2,6 +2,7 @@ package com.example.test.nutrition
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,15 +12,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -104,9 +115,10 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                     Text("Type to search foods")
                 }
             } else {
+                val isCache = currentSource == FoodSource.CACHE
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(searchResults.itemCount) { index ->
@@ -131,6 +143,8 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                                 date = date,
                                 category = category,
                                 brand = it.brandName,
+                                isCache = isCache,
+                                onDelete = { viewModel.deleteFromCache(food.fdcId) },
                                 navController = navController
                             )
                         }
@@ -247,40 +261,99 @@ fun FoodRow(
     date: String,
     category: String,
     brand: String?,
+    isCache: Boolean,
+    onDelete: () -> Unit,
     navController: NavController
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth()
-            .clickable{
-                navController.navigate(
-                    "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}")
-            }
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+
+    var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember {mutableStateOf(false)}
+    Box(modifier = modifier.fillMaxWidth()) {
+        Card(
+            modifier = modifier.fillMaxWidth()
+                .combinedClickable(
+                    onClick = {
+                        navController.navigate(
+                            "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}"
+                        )
+                    },
+                    onLongClick = if (isCache) {
+                        { expanded = true }
+                    } else null
+                )
+//            .clickable{
+//                navController.navigate(
+//                    "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}")
+//            }
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
 //            Row(modifier = Modifier.fillMaxWidth(),
 //                verticalAlignment = Alignment.CenterVertically) {
 //                Column(modifier = Modifier.weight(1f)) {
-            val grams = servingSize?: 100F
-            Text(
-                text = food.description,
-                style = MaterialTheme.typography.titleMedium
-            )
+                val grams = servingSize ?: 100F
+                Text(
+                    text = food.description,
+                    style = MaterialTheme.typography.titleMedium
+                )
 //             }
-            Text(
-                text = "${grams}g  ${kcalP100/100*grams}kcal ",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = "${grams}g  ${kcalP100 / 100 * grams}kcal ",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-            Text(
-                text = if(brand.isNullOrEmpty()){"source: ${food.dataType}"}
-                else{"source: ${food.dataType} brand: $brand"},
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = if (brand.isNullOrEmpty()) {
+                        "source: ${food.dataType}"
+                    } else {
+                        "source: ${food.dataType} brand: $brand"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
             }
         }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Delete from your history") },
+                onClick = {
+                    expanded = false
+                    showDeleteDialog = true
+//                    onDelete()
+                },
+                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+            )
+        }
+
+        if (showDeleteDialog){
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                title = { Text("Remove from your history?") },
+                text = { Text("Are you sure you want to remove '${food.description}' from your saved foods?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            onDelete() // Trigger the ViewModel delete function
+                        }
+                    ) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
+}
 
 

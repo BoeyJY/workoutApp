@@ -234,6 +234,11 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun deleteFromCache(id: Long){
+        viewModelScope.launch {
+            repo.deleteFromCache(id)
+        }
+    }
 
     var dishes by mutableStateOf(listOf<logged_foods>())
     private set

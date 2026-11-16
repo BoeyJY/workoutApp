@@ -103,7 +103,8 @@ interface NutritionDAO{
     @Query("SELECT * FROM CachedFoods WHERE id = :id")
     suspend fun getCachedFoodById(id: Long): CachedFoods?
 
-
+    @Query("DELETE FROM CachedFoods WHERE id = :id")
+    suspend fun deleteFromCache(id: Long)
 
 }
 
