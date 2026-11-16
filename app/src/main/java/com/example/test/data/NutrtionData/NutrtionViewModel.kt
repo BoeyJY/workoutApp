@@ -37,6 +37,8 @@ sealed interface FoodUiState {
     data class Success(val foods: StateFlow<List<UsdaFood>>) : FoodUiState
     data class Error(val message: String) : FoodUiState
 }
+
+enum class FoodSource { CACHE, API }
 class NutritionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = NutritionRepo(application,
@@ -102,6 +104,13 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
         query.value = text
     }
 
+    private val _foodSource = MutableStateFlow(FoodSource.CACHE)
+    val foodSource: StateFlow<FoodSource> = _foodSource.asStateFlow()
+
+    fun setFoodSource(source: FoodSource) {
+        _foodSource.value = source
+    }
+
 //
 //    private val _uiState =
 //        MutableStateFlow<FoodUiState>(FoodUiState.Idle)
@@ -110,21 +119,31 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
 //        _uiState.asStateFlow()
 
 
-
-
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val searchResults: Flow<PagingData<UsdaFood>> =
+    val searchResults: Flow<PagingData<UsdaFood>> = combine(
         query
         .debounce(500.milliseconds)
-        .distinctUntilChanged()
-        .flatMapLatest { query ->
-                if (query.isBlank()) {
-                    flowOf(PagingData.empty())
-                } else {
-                    repo.searchPaginated(query.trim())
+        .distinctUntilChanged(),
+        _foodSource
+    ){
+        query, source ->
+        query.trim() to source
+    }
+        .flatMapLatest { (query, source) ->
+            when (source) {
+                FoodSource.API -> {
+                    if (query.isBlank()) {
+                        flowOf(PagingData.empty())
+                    } else {
+                        repo.searchPaginated(query)
+                    }
                 }
+                FoodSource.CACHE -> {
+                    repo.getCachedPaginated(query)
+                }
+            }.cachedIn(viewModelScope)
 
-        }.cachedIn(viewModelScope)
+        }
 //        .stateIn(
 //        viewModelScope,
 //        SharingStarted.WhileSubscribed(5000),
@@ -135,6 +154,22 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     suspend fun getUsdaFoodById(id: Long): UsdaAbridgedFood{
         return repo.getUsdaFoodById(id)
     }
+
+    suspend fun getCachedFoodById(id: Long): UsdaAbridgedFood?{
+        return repo.getCachedFoodById(id)
+    }
+
+    suspend fun searchCacheThenApi(id: Long): UsdaAbridgedFood{
+        val food = getCachedFoodById(id)
+
+        if(food == null){
+            return getUsdaFoodById(id)
+        }
+        else{
+            return food
+        }
+    }
+
     fun searchFoodByName(input: String) {
         query.value = input
     }

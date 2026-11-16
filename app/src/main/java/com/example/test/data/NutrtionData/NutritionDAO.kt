@@ -1,5 +1,6 @@
 package com.example.test.data.NutrtionData
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -82,7 +83,24 @@ interface NutritionDAO{
             deleteOldest(n - max)
         }
     }
+
+    @Query("""
+        SELECT * FROM cachedfoods 
+        WHERE description LIKE '%' || :query || '%' 
+        ORDER BY lastUsed DESC
+    """)
+    fun getCachedPaginated(query: String): PagingSource<Int, CachedFoods>
+
+
+    @Query("SELECT * FROM CachedFoods WHERE id = :id")
+    suspend fun getCachedFoodById(id: Long): CachedFoods?
+
+
+
 }
+
+
+
 
 data class DailyMacros(
     val cal: Float? = 0F,

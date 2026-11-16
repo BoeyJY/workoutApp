@@ -90,7 +90,8 @@ fun FoodAdd(viewModel: NutritionViewModel = viewModel(),
     LaunchedEffect(id)
     {
 //        selectedFood = viewModel.getFoodById(id)
-        selectedFood = viewModel.getUsdaFoodById(id)
+//        selectedFood = viewModel.getUsdaFoodById(id)
+        selectedFood = viewModel.searchCacheThenApi(id)
         Log.d("selectedFood", selectedFood.toString())
 
         if (loggedId != null) {

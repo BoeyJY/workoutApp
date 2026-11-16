@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
 import com.example.test.data.Exercise
 import com.example.test.data.ExerciseDB
 import com.example.test.network.NetworkModule
@@ -13,6 +14,7 @@ import com.example.test.network.NutritionNetworkModule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -109,6 +111,212 @@ class NutritionRepo(private val context: Context,
             }
         ).flow
 }
+
+    fun getCachedPaginated(
+        query: String
+        ): Flow<PagingData<UsdaFood>> {
+        return Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = { dao.getCachedPaginated(query) }
+        ).flow.map{ data ->
+            data.map {cachedFoods -> cachedFoods.toUsdaFood()}
+        }
+    }
+
+    suspend fun getCachedFoodById(id: Long): UsdaAbridgedFood?{
+        return dao.getCachedFoodById(id)?.toUsdaAbridgedFood()
+    }
+
+    fun CachedFoods.toUsdaAbridgedFood(): UsdaAbridgedFood{
+        return UsdaAbridgedFood(
+            fdcId = id,
+            description = description,
+            dataType = dataType,
+            // OK SO
+            // I am mapping all of it back to the USDA abridged Food list structure
+            // At first i thought I'd only need the kcal so I just had the first FoodNutrient
+            // Then I realised that FoodAdd needs the same structure to not have to do a bunch of if statements
+            // I then realised there must be a way to just store the USDA food instead of creating a new object CachedFoods
+            // However, the food details from USDA i use to insert into the table, don't have brand name and serving size
+            // Also, I'd have to map the JSON list of FoodNutrients anyways
+            // I made the abridgedFoodNutrient data class have nullable names and unitName
+            // This is just for my current convenience lol since they arent needed now
+            // Otherwise they need to be added to cached foods as well
+            // BUT there's probably a much better way to do this
+            // Future me if you have to refactor this, I'm sorry LOL, rn I CBA
+            foodNutrients = listOf(
+                abridgedFoodNutrient(
+                    number = 1008F,
+                    amount = kcal,
+                    unitName = "kcal"
+                ),
+                abridgedFoodNutrient(
+                    number = 1003F,
+                    amount = protein
+                ),
+                abridgedFoodNutrient(
+                    number = 1004F,
+                    amount = totalLipid
+                ),
+                abridgedFoodNutrient(
+                    number = 1005F,
+                    amount = carbs
+                ),
+                abridgedFoodNutrient(
+                    number = 1063F,
+                    amount = sugars
+                ),
+                abridgedFoodNutrient(
+                    number = 1079F,
+                    amount = fiber
+                ),
+                abridgedFoodNutrient(
+                    number = 1087F,
+                    amount = calcium
+                ),
+                abridgedFoodNutrient(
+                    number = 1089F,
+                    amount = iron
+                ),
+                abridgedFoodNutrient(
+                    number = 1092F,
+                    amount = potassium
+                ),
+                abridgedFoodNutrient(
+                    number = 1093F,
+                    amount = sodium
+                ),
+                abridgedFoodNutrient(
+                    number = 1106F,
+                    amount = vitaminA
+                ),
+                abridgedFoodNutrient(
+                    number = 1162F,
+                    amount = vitaminC
+                ),
+                abridgedFoodNutrient(
+                    number = 1165F,
+                    amount = thiamin
+                ),
+                abridgedFoodNutrient(
+                    number = 1167F,
+                    amount = niacin
+                ),
+                abridgedFoodNutrient(
+                    number = 1177F,
+                    amount = folate
+                ),
+                abridgedFoodNutrient(
+                    number = 1253F,
+                    amount = cholesterol
+                ),
+                abridgedFoodNutrient(
+                    number = 1257F,
+                    amount = transFat
+                ),
+                abridgedFoodNutrient(
+                    number = 1258F,
+                    amount = saturatedFat
+                )
+            )
+            )
+    }
+    fun CachedFoods.toUsdaFood(): UsdaFood {
+        return UsdaFood(
+            fdcId = id,
+            description = description,
+            dataType = dataType,
+            brandName = brandName,
+            servingSize = servingSize,
+            // OK SO
+            // I am mapping all of it back to the USDA Food list structure
+            // At first i thought I'd only need the kcal so I just had the first FoodNutrient
+            // Then I realised that FoodAdd needs the same structure to not have to do a bunch of if statements
+            // I then realised there must be a way to just store the USDA food instead of creating a new object CachedFoods
+            // However, the food details from USDA i use to insert into the table, don't have brand name and serving size
+            // Also, I'd have to map the JSON list of FoodNutrients anyways
+            // BUT there's probably a much better way to do this
+            // Future me if you have to refactor this, I'm sorry LOL, rn I CBA
+            // I only use KCAL from foodNutrients, all the rest is not needed as of writing, uncomment if needed.
+            foodNutrients = listOf(
+                FoodNutrient(
+                    nutrientId = 1008,
+                    nutrientName = "Energy",
+                    value = kcal,
+                    unitName = "kcal"
+                )
+//                ,
+//                FoodNutrient(
+//                    nutrientId = 1003,
+//                    value = protein
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1004,
+//                    value = totalLipid
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1005,
+//                    value = carbs
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1063,
+//                    value = sugars
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1079,
+//                    value = fiber
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1087,
+//                    value = calcium
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1089,
+//                    value = iron
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1092,
+//                    value = potassium
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1093,
+//                    value = sodium
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1106,
+//                    value = vitaminA
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1162,
+//                    value = vitaminC
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1165,
+//                    value = thiamin
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1167,
+//                    value = niacin
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1177,
+//                    value = folate
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1253,
+//                    value = cholesterol
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1257,
+//                    value = transFat
+//                ),
+//                FoodNutrient(
+//                    nutrientId = 1258,
+//                    value = saturatedFat
+//                )
+            )
+        )
+    }
 
     suspend fun getUsdaFoodById(id: Long): UsdaAbridgedFood {
         return NutritionNetworkModule.api.getFoodById(id, apiKey = apiKey)

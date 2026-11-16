@@ -29,9 +29,9 @@ data class UsdaAbridgedFood(
 
 data class abridgedFoodNutrient(
     val number: Float,
-    val name: String,
+    val name: String? = null,
     val amount: Float? = null,
-    val unitName: String
+    val unitName: String? = null
 )
 
 data class FoodSearchResponse(

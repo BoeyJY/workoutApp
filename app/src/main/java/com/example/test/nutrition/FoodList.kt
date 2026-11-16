@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.test.data.NutrtionData.FoodSource
 import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.data.NutrtionData.UsdaFood
 import com.example.test.searchTopBar
@@ -41,6 +45,7 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 //    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
 
+    val currentSource by viewModel.foodSource.collectAsStateWithLifecycle()
 
 //    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
@@ -61,13 +66,44 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
             )
         }
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues)){
+        Column(Modifier.fillMaxSize().padding(paddingValues)){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            )
+            {
+                Button(
+                    onClick = { viewModel.setFoodSource(FoodSource.CACHE) },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (currentSource == FoodSource.CACHE)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text("History")
+                }
+                Button(
+                    onClick = { viewModel.setFoodSource(FoodSource.API) },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (currentSource == FoodSource.API)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text("API")
+                }
+            }
+
+//        Box(Modifier.fillMaxSize().padding(paddingValues)) {
             if (searchResults.itemCount == 0 && searchText.isBlank()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Type to search foods")
                 }
-            }
-            else{
+            } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -76,8 +112,10 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                     items(searchResults.itemCount) { index ->
                         val food = searchResults[index]
                         val cals: Float = food?.foodNutrients
-                            ?.firstOrNull { it.nutrientId in setOf(1008, 2047, 2048) &&
-                                    it.unitName.equals("kcal", ignoreCase = true)}
+                            ?.firstOrNull {
+                                it.nutrientId in setOf(1008, 2047, 2048) &&
+                                        it.unitName.equals("kcal", ignoreCase = true)
+                            }
                             ?.value
 //                            ?.firstOrNull { it.name == "Energy" }
 //                            ?.amount
@@ -105,16 +143,19 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                                 }
                             }
                         }
+
                         is LoadState.Error -> {
                             val error = searchResults.loadState.append as LoadState.Error
                             item {
                                 Text(text = "Error loading more: ${error.error.localizedMessage}")
                             }
                         }
+
                         else -> {}
                     }
                 }
             }
+//        }
 
 //            // Display the API response
 //            when (val state = uiState) {
@@ -212,7 +253,7 @@ fun FoodRow(
         modifier = modifier.fillMaxWidth()
             .clickable{
                 navController.navigate(
-                    "FoodAdd/${date}/${food.fdcId}/${category}")
+                    "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
