@@ -1,8 +1,13 @@
 package com.example.test
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,6 +82,7 @@ import com.example.test.data.sessionSets
 import java.net.URLEncoder
 import java.util.Date
 
+@SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                navController: NavController,
@@ -192,151 +198,163 @@ fun LogWorkout(viewModel: ExerciseViewModel = viewModel(),
                     }
                 }
             }
+            AnimatedContent(
+                targetState = selectedDate,
+                transitionSpec ={
+                    val forward = targetState > initialState
 
+                    if (forward){
+                        slideInHorizontally { it } togetherWith
+                                slideOutHorizontally { -it }
+                    } else{
+                        slideInHorizontally { -it } togetherWith
+                                slideOutHorizontally { it }
+                    }
+                }
+            )
+            {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-
-                if (sets.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(cards.toList()) { (name, set) ->
-                            val encodedName = URLEncoder.encode(name, "UTF-8")
-                            Card(
-                                modifier = Modifier.fillMaxWidth()
-                                    .clickable(onClick = dropUnlessResumed{
-                                        val date = SimpleDateFormat(
-                                            "yyyy-MM-dd"
-                                        ).format(date.time)
-                                        navController.navigate("ExerciseAdd/${date}/${encodedName}")
-                                    } ) ,
-                                shape = RoundedCornerShape(12.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
+                    if (sets.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(cards.toList()) { (name, set) ->
+                                val encodedName = URLEncoder.encode(name, "UTF-8")
+                                Card(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .clickable(onClick = dropUnlessResumed {
+                                            val date = SimpleDateFormat(
+                                                "yyyy-MM-dd"
+                                            ).format(date.time)
+                                            navController.navigate("ExerciseAdd/${date}/${encodedName}")
+                                        }),
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
 
-                                    // Exercise name
-                                    Text(
-                                        text = name,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
 
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                        // Exercise name
+                                        Text(
+                                            text = name,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
 
-                                    // Individual sets
-                                    set.forEach { set ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 4.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.CommentBank,
-                                                contentDescription = if (set.comment.isNullOrEmpty()) null else "Has comment",
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        // Individual sets
+                                        set.forEach { set ->
+                                            Row(
                                                 modifier = Modifier
-                                                    .size(18.dp)
-                                                    .padding(end = 6.dp),
-                                                tint = if (set.comment.isNullOrEmpty()) {
-                                                    Color.Transparent
-                                                } else {
-                                                    MaterialTheme.colorScheme.primary
-                                                }
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 4.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CommentBank,
+                                                    contentDescription = if (set.comment.isNullOrEmpty()) null else "Has comment",
+                                                    modifier = Modifier
+                                                        .size(18.dp)
+                                                        .padding(end = 6.dp),
+                                                    tint = if (set.comment.isNullOrEmpty()) {
+                                                        Color.Transparent
+                                                    } else {
+                                                        MaterialTheme.colorScheme.primary
+                                                    }
 
-                                            )
+                                                )
 
-                                            // Weight
-                                            Text(
-                                                text = "${set.weight} kg",
-                                                modifier = Modifier.weight(1f)
-                                            )
+                                                // Weight
+                                                Text(
+                                                    text = "${set.weight} kg",
+                                                    modifier = Modifier.weight(1f)
+                                                )
 
-                                            // Reps
-                                            Text(
-                                                text = "${set.reps} reps",
-                                                modifier = Modifier.weight(1f)
-                                            )
+                                                // Reps
+                                                Text(
+                                                    text = "${set.reps} reps",
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                Column(
-                    modifier =
-                        if(sets.isEmpty()){
-                        Modifier.align(Alignment.Center)}
-                    else{
-                        Modifier.align(Alignment.BottomEnd)
-                    }
-                        ,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = dropUnlessResumed {
-                            val date = SimpleDateFormat(
-                                "yyyy-MM-dd"
-                            ).format(date.time)
-                            navController.navigate("ExerciseList/$date")
-                        },
-                        modifier = if (sets.isEmpty()) {
-                            Modifier
-//                                .align(Alignment.Center)
-                                .size(80.dp)
-                        } else {
-                            Modifier
-//                                .align(Alignment.BottomEnd)
-                                .padding(16.dp)
-                                .size(64.dp)
-                        },
-                        shape = CircleShape
+                    Column(
+                        modifier =
+                            if (sets.isEmpty()) {
+                                Modifier.align(Alignment.Center)
+                            } else {
+                                Modifier.align(Alignment.BottomEnd)
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "+",
-                            fontSize = if (sets.isEmpty()) 32.sp else 28.sp
-                        )
-                    }
-                    if (sets.isEmpty()) {
-                        OutlinedButton(
+                        Button(
                             onClick = dropUnlessResumed {
                                 val date = SimpleDateFormat(
                                     "yyyy-MM-dd"
                                 ).format(date.time)
-                                navController.navigate("CalendarScreen?navDate=$date&copy=${true}")
+                                navController.navigate("ExerciseList/$date")
                             },
-                            modifier =
+                            modifier = if (sets.isEmpty()) {
                                 Modifier
-                                    .size(80.dp),
-                            shape = CircleShape,
-                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White
-                            ),
-                            contentPadding = PaddingValues(0.dp)
+//                                .align(Alignment.Center)
+                                    .size(80.dp)
+                            } else {
+                                Modifier
+//                                .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
+                                    .size(64.dp)
+                            },
+                            shape = CircleShape
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.CopyAll,
-                                contentDescription = "Copy previous workout",
-                                tint = Color.White
+                            Text(
+                                text = "+",
+                                fontSize = if (sets.isEmpty()) 32.sp else 28.sp
                             )
+                        }
+                        if (sets.isEmpty()) {
+                            OutlinedButton(
+                                onClick = dropUnlessResumed {
+                                    val date = SimpleDateFormat(
+                                        "yyyy-MM-dd"
+                                    ).format(date.time)
+                                    navController.navigate("CalendarScreen?navDate=$date&copy=${true}")
+                                },
+                                modifier =
+                                    Modifier
+                                        .size(80.dp),
+                                shape = CircleShape,
+                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = Color.White
+                                ),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CopyAll,
+                                    contentDescription = "Copy previous workout",
+                                    tint = Color.White
+                                )
+                            }
                         }
                     }
                 }
             }
-
 
             }
         }

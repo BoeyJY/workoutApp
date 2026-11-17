@@ -171,6 +171,7 @@ fun FoodLog(viewModel: NutritionViewModel = viewModel(),
             // Macro section
             // -------------------------
 
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

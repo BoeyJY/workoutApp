@@ -3,6 +3,9 @@ package com.example.test
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 //import androidx.compose.material.icons.Icons
 //import androidx.compose.material.icons.filled.Home
@@ -39,6 +42,8 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
+    val SCREEN_TRANSITION_MILLIS = 500
+
     Scaffold(
         bottomBar = {
             BotNavBar(
@@ -50,7 +55,27 @@ fun MainScreen() {
         NavHost(
             navController = navController,
             startDestination = "HomePage",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            enterTransition = { slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.Start, tween(
+                    SCREEN_TRANSITION_MILLIS
+                )
+            ) },
+            exitTransition = { slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Start, tween(
+                    SCREEN_TRANSITION_MILLIS
+                )
+            ) },
+            popEnterTransition = { slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.End, tween(
+                    SCREEN_TRANSITION_MILLIS
+                )
+            ) },
+            popExitTransition = { slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.End, tween(
+                    SCREEN_TRANSITION_MILLIS
+                )
+            ) }
         ) {
             composable("HomePage") {
                 HomePage()

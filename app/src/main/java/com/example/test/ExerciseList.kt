@@ -57,7 +57,6 @@ fun ExerciseList(
         viewModel.setMuscleFilter("")
     }
 
-    Log.d("test", "exercisellist")
     Scaffold(
         topBar = {
             searchTopBar(
@@ -90,8 +89,6 @@ fun ExerciseList(
         if(muscleFilter == ""
 //            !isSearching
             ) {
-            println("muscle list $muscleList")
-            println("muscle filter $muscleFilter")
             Box(modifier = Modifier.padding(paddingValues)) {
                 LazyColumn(
                     Modifier
