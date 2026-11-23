@@ -58,27 +58,6 @@ fun topBar(
                             contentDescription = "Back",
                             onClick = onBackClick
                         )
-//                        IconButton(
-//                            onClick = onBackClick,
-//                            modifier = Modifier
-//                                .padding(start = 8.dp)
-//                                .size(44.dp)
-//                                .border(
-//                                    width = 1.dp,
-//                                    color = MaterialTheme.colorScheme.primary,
-//                                    shape = RoundedCornerShape(8.dp)
-//                                )
-//                                .background(
-//                                    color = MaterialTheme.colorScheme.surface,
-//                                    shape = RoundedCornerShape(8.dp)
-//                                )
-//                        ) {
-//                            Icon(
-//                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                                contentDescription = "Back",
-//                                tint = MaterialTheme.colorScheme.primary
-//                            )
-//                        }
                     }
                     Text(
                         text = title,

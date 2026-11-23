@@ -2,9 +2,13 @@ package com.example.test.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.Index
 
 // This class represents both GitHub exercises and user‑created ones.
-@Entity(tableName = "exercises")
+@Entity(tableName = "exercises",
+    indices = [
+        Index(value = ["name"], unique = true)
+    ])
 data class Exercise(
     @PrimaryKey val id: String,           // GitHub uses "id" like "0001"
     val name: String,

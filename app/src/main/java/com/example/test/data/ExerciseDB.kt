@@ -4,13 +4,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(entities =
     [Exercise::class,
     workoutSessions::class,
     sessionExercises::class,
     sessionSets::class
-    ], version = 5, exportSchema = false)
+    ], version = 6, exportSchema = false)
 abstract class ExerciseDB : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
 
@@ -20,11 +22,33 @@ abstract class ExerciseDB : RoomDatabase() {
 
         fun getInstance(context: Context): ExerciseDB {
             return INSTANCE ?: synchronized(this) {
+                val MIGRATION_5_6 = object : Migration(5, 6) {
+                    override fun migrate(db: SupportSQLiteDatabase) {
+                        db.execSQL(
+                            """
+                            DELETE FROM exercises
+                            WHERE id NOT IN (
+                                SELECT MIN(id)
+                                FROM exercises
+                                GROUP BY name
+                            )
+                            """.trimIndent()
+                        )
+                        db.execSQL(
+                            """
+                            CREATE UNIQUE INDEX index_exercises_name
+                            ON exercises(name)
+                            """.trimIndent()
+                        )
+                    }
+                }
                 val instance = Room.databaseBuilder(
                                 context.applicationContext,
                                 ExerciseDB::class.java,
                                 "exercise_database"
-                            ).fallbackToDestructiveMigration(true)
+                            )
+                    .addMigrations(MIGRATION_5_6)
+//                    .fallbackToDestructiveMigration(true)
                     //TODO remove the fallback and write a migration
                     .build()
                 INSTANCE = instance

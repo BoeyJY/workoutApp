@@ -82,6 +82,13 @@ fun ExerciseList(
                     else {
                         navController.popBackStack()
                     }
+                },
+                actions = {
+                    TopBarIcon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create Exercise",
+                        onClick = dropUnlessResumed {navController.navigate("UserExerciseAdd") }
+                    )
                 }
             )
         }
@@ -197,13 +204,13 @@ fun ExerciseRow(
                         text = exercise.name,
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (exercise.isUserCreated) {
-                        Text(
-                            text = "⭐ User Created",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+//                    if (exercise.isUserCreated) {
+//                        Text(
+//                            text = "⭐ User Created",
+//                            style = MaterialTheme.typography.labelSmall,
+//                            color = MaterialTheme.colorScheme.primary
+//                        )
+//                    }
                 }
                 IconButton(
                     onClick = dropUnlessResumed{

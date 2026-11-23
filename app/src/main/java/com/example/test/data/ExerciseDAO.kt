@@ -5,7 +5,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.test.data.ExerciseCardData
 import kotlinx.coroutines.flow.Flow
 
@@ -23,11 +25,16 @@ interface ExerciseDao {
     suspend fun dbReady(): Boolean
     //
 
-    @Query("SELECT * FROM exercises WHERE primaryMuscles LIKE '%' || :muscle || '%' ORDER BY id ASC")
+    @Query("SELECT * FROM exercises WHERE primaryMuscles LIKE '%' || :muscle || '%' ORDER BY name ASC")
     fun getExercisesPaged(muscle: String): PagingSource<Int, Exercise>
 
     @Query("SELECT DISTINCT primaryMuscles FROM exercises")
     fun getExercisesMuscles(): Flow<List<String>>
+
+
+
+    @RawQuery
+    suspend fun getExerciseColumn(query: SupportSQLiteQuery):List<String>
 
     @Query("SELECT * FROM exercises WHERE id = :id")
     fun getExerciseByID(id: String): Flow<Exercise>

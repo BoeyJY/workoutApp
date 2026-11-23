@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,13 +43,13 @@ fun searchTopBar(
     title: String,
     modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null
-
             // Search
     ,isSearching: Boolean,
     searchText: String,
     onSearchTextChanged: (String) -> Unit,
     onSearchClick: () -> Unit,
-    onSearchCancel: () -> Unit
+    onSearchCancel: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
 
 //    var isSearching by remember { mutableStateOf(false) }
@@ -119,6 +120,7 @@ fun searchTopBar(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
+                actions()
             }  else {
 
                 // Search field

@@ -10,9 +10,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,26 +79,79 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun addUserExercise(name: String, instructions: String?) {
+    fun addUserExercise(
+        name: String,
+        force: String?,
+        level: String?,
+        mechanic: String?,
+        equipment: String?,
+        instructions: String? = null,
+        category: String,
+        primaryMuscles: String,
+        secondaryMuscles: List<String>?
+    ) {
         viewModelScope.launch {
+            var second = ""
+            if(!secondaryMuscles.isNullOrEmpty()){
+                secondaryMuscles.forEach { muscle ->
+                    second = "$second$muscle,"
+                }
+                second = second.dropLast(1)
+            }
             val newExercise = Exercise(
                 id = "user_${System.currentTimeMillis()}", // generate unique ID
                 name = name,
                 instructions = instructions,
                 isUserCreated = true,
-                force = TODO(),
-                level = TODO(),
-                mechanic = TODO(),
-                equipment = TODO(),
-                category = TODO(),
-                primaryMuscles = TODO(),
-                secondaryMuscles = TODO(),
-                imagePath = TODO(),
-                createdAt = TODO()
+                force = if(force.isNullOrBlank()){null}else{force},
+                level = if(level.isNullOrBlank()){null}else{level},
+                mechanic = if(mechanic.isNullOrBlank()){null}else{mechanic},
+                equipment = if(equipment.isNullOrBlank()){null}else{equipment},
+                category = category,
+                primaryMuscles = primaryMuscles,
+                secondaryMuscles = if(second.isNullOrBlank()){null}else{second}
             )
             repository.addUserExercise(newExercise)
         }
     }
+
+    private val musclesDeferred: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("primaryMuscles")
+    }
+
+    suspend fun getDistinctMuscle(): List<String> = musclesDeferred.await()
+
+    private val exerciseForce: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("force")
+    }
+
+    suspend fun getExerciseForce(): List<String> = exerciseForce.await()
+
+    private val exerciseLevel: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("level")
+    }
+
+    suspend fun getExerciseLevel(): List<String> = exerciseLevel.await()
+
+    private val exerciseMechanic: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("mechanic")
+    }
+
+    suspend fun getExerciseMechanic(): List<String> = exerciseMechanic.await()
+
+
+    private val exerciseEquipment: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("equipment")
+    }
+
+    suspend fun getExerciseEquipment(): List<String> = exerciseEquipment.await()
+
+    private val exerciseCategory: Deferred<List<String>> = viewModelScope.async {
+        repository.getExerciseColumn("category")
+    }
+
+    suspend fun getExerciseCategory(): List<String> = exerciseCategory.await()
+
 
     fun getExerciseByID(ID: String): Flow<Exercise>{
         return repository.getExerciseByID(ID)

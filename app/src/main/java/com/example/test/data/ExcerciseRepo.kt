@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.test.network.NetworkModule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -165,6 +166,23 @@ class ExerciseRepo(private val context: Context) {
         return dao.getExerciseIdByName(name)
     }
 
+
+    suspend fun getExerciseColumn(column: String): List<String>{
+        val allowedColumns = setOf(
+            "force",
+            "level",
+            "mechanic",
+            "equipment",
+            "category",
+            "primaryMuscles"
+        )
+        require(column in allowedColumns)
+        return dao.getExerciseColumn(
+            SimpleSQLiteQuery(
+                "SELECT DISTINCT $column FROM exercises WHERE $column IS NOT NULL"
+            )
+        )
+    }
 
 
     // del later

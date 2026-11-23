@@ -202,6 +202,12 @@ fun MainScreen() {
                 val copy = backStackEntry.arguments?.getBoolean("copy")?: false
                 CalendarScreen(navController = navController, navDate = navDate, copy = copy)
             }
+
+            composable(
+                route = "UserExerciseAdd"
+            ){
+                UserExerciseAdd(navController = navController)
+            }
         }
     }
 }
