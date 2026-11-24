@@ -12,6 +12,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.test.BuildConfig
 import com.example.test.data.Exercise
+import com.example.test.nutrition.newFoodData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -309,6 +310,34 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     fun insertWithEviction(cachedFood: CachedFoods){
         viewModelScope.launch{
             repo.insertWithEviction(cachedFood)
+        }
+    }
+
+    fun insertUserCreatedFood(newData: newFoodData){
+        val USF = UserCreatedFoods(
+            description = newData.description,
+            servingSize = newData.servingSize.toFloat(),
+            protein = newData.protein.toFloat(),
+            totalLipid = newData.totalLipid.toFloat(),
+            carbs = newData.carbs.toFloat(),
+            kcal = newData.kcal.toFloat(),
+            sugars = newData.sugars.toFloat(),
+            fiber = newData.fiber.toFloat(),
+            calcium = newData.calcium.toFloat(),
+            iron = newData.iron.toFloat(),
+            potassium = newData.potassium.toFloat(),
+            sodium = newData.sodium.toFloat(),
+            vitaminA = newData.vitaminA.toFloat(),
+            vitaminC = newData.vitaminC.toFloat(),
+            thiamin = newData.thiamin.toFloat(),
+            niacin = newData.niacin.toFloat(),
+            folate = newData.folate.toFloat(),
+            cholesterol = newData.cholesterol.toFloat(),
+            transFat = newData.transFat.toFloat(),
+            saturatedFat = newData.saturatedFat.toFloat()
+        )
+        viewModelScope.launch{
+            repo.insertUserCreatedFood(USF)
         }
     }
 

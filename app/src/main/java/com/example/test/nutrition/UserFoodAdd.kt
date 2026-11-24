@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.nutrition
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,7 +27,8 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.test.data.NutrtionData.NutritionViewModel
-import kotlinx.coroutines.newFixedThreadPoolContext
+import com.example.test.data.NutrtionData.UserCreatedFoods
+import com.example.test.topBar
 
 
 // the USDA food nutrition data is based on 100g,
@@ -238,7 +238,7 @@ fun UserFoodAdd(
                 Button(
                     modifier = Modifier.weight(1f),
                     onClick = dropUnlessResumed {
-                        //TODO add create new food
+                        viewModel.insertUserCreatedFood(newData)
                         navController.popBackStack()
                     },
                     enabled = (newData.description != "") &&

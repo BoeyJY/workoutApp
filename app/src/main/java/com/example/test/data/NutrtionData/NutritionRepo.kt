@@ -350,4 +350,9 @@ class NutritionRepo(private val context: Context,
         dao.insertWithEviction(cachedFood)
     }
 
+
+    suspend fun insertUserCreatedFood(USF: UserCreatedFoods){
+        dao.insertUserCreatedFood(USF)
+    }
+
     }
