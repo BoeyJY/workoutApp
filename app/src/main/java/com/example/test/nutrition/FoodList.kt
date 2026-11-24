@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.test.TopBarIcon
 import com.example.test.data.NutrtionData.FoodSource
 import com.example.test.data.NutrtionData.NutritionViewModel
 import com.example.test.data.NutrtionData.UsdaFood
@@ -74,6 +76,13 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
 
                 onBackClick = dropUnlessResumed{
                     navController.popBackStack()
+                },
+                actions = {
+                    TopBarIcon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create Food",
+                        onClick = dropUnlessResumed {navController.navigate("UserFoodAdd") }
+                    )
                 }
             )
         }

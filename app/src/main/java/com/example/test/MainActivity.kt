@@ -208,6 +208,12 @@ fun MainScreen() {
             ){
                 UserExerciseAdd(navController = navController)
             }
+
+            composable(
+                route = "UserFoodAdd"
+            ){
+                UserFoodAdd(navController = navController)
+            }
         }
     }
 }
