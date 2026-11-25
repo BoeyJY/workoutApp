@@ -137,7 +137,6 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                     Text("Type to search foods")
                 }
             } else {
-                val isCache = currentSource == FoodSource.CACHE
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(4.dp),
@@ -165,8 +164,9 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                                 date = date,
                                 category = category,
                                 brand = it.brandName,
-                                isCache = isCache,
-                                onDelete = { viewModel.deleteFromCache(food.fdcId) },
+                                source = currentSource,
+                                onCacheDelete = { viewModel.deleteFromCache(food.fdcId) },
+                                onCreatedDelete = {viewModel.deleteUserCreated(food.fdcId)},
                                 navController = navController
                             )
                         }
@@ -283,8 +283,9 @@ fun FoodRow(
     date: String,
     category: String,
     brand: String?,
-    isCache: Boolean,
-    onDelete: () -> Unit,
+    source: FoodSource,
+    onCacheDelete: () -> Unit,
+    onCreatedDelete:() -> Unit,
     navController: NavController
 ) {
 
@@ -299,7 +300,7 @@ fun FoodRow(
                             "FoodAdd/${date}/${food.fdcId}/${category}?servingSize=${food.servingSize}&brand=${food.brandName}"
                         )
                     },
-                    onLongClick = if (isCache) {
+                    onLongClick = if (source == FoodSource.CACHE || source == FoodSource.USER_CREATED) {
                         { expanded = true }
                     } else null
                 )
@@ -342,7 +343,9 @@ fun FoodRow(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text("Delete from your history") },
+                text = { if(source == FoodSource.CACHE){Text("Delete from your history")}
+                    if(source == FoodSource.USER_CREATED){Text("Delete your created food")}
+                },
                 onClick = {
                     expanded = false
                     showDeleteDialog = true
@@ -356,13 +359,17 @@ fun FoodRow(
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 icon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                title = { Text("Remove from your history?") },
-                text = { Text("Are you sure you want to remove '${food.description}' from your saved foods?") },
+                title = { if(source == FoodSource.CACHE){Text("Remove from your history")}
+                    if(source == FoodSource.USER_CREATED){Text("Remove your created food")} },
+                text = { if(source == FoodSource.CACHE){Text("Are you sure you want to remove '${food.description}' from your saved foods?")}
+                    if(source == FoodSource.USER_CREATED){Text("Are you sure you want to remove '${food.description}' from your created foods?")}
+                     },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             showDeleteDialog = false
-                            onDelete() // Trigger the ViewModel delete function
+                            if(source == FoodSource.CACHE){onCacheDelete()}
+                            if(source == FoodSource.USER_CREATED){onCreatedDelete()}// Trigger the ViewModel delete function
                         }
                     ) {
                         Text("Delete", color = MaterialTheme.colorScheme.error)

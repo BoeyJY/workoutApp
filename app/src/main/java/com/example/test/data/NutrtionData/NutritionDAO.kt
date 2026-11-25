@@ -116,6 +116,9 @@ interface NutritionDAO{
     @Query("DELETE FROM CachedFoods WHERE id = :id")
     suspend fun deleteFromCache(id: Long)
 
+    @Query("DELETE FROM UserCreatedFoods WHERE id = :id")
+    suspend fun deleteUserCreated(id: Long)
+
 
     @Insert
     suspend fun insertUserCreatedFood(USF: UserCreatedFoods)

@@ -157,6 +157,10 @@ class NutritionRepo(private val context: Context,
         dao.deleteFromCache(id)
     }
 
+    suspend fun deleteUserCreated(id: Long){
+        dao.deleteUserCreated(id)
+    }
+
     fun CachedFoods.toUsdaAbridgedFood(): UsdaAbridgedFood{
         return UsdaAbridgedFood(
             fdcId = id,
