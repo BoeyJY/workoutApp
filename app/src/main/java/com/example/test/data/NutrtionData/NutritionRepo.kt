@@ -134,8 +134,23 @@ class NutritionRepo(private val context: Context,
         }
     }
 
+    fun getUserCreatedPaginated(
+        query: String
+    ): Flow<PagingData<UsdaFood>> {
+        return Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = { dao.getUserCreatedPaginated(query) }
+        ).flow.map{ data ->
+            data.map {UserCreatedFoods -> UserCreatedFoods.toUsdaFood()}
+        }
+    }
+
     suspend fun getCachedFoodById(id: Long): UsdaAbridgedFood?{
         return dao.getCachedFoodById(id)?.toUsdaAbridgedFood()
+    }
+
+    suspend fun getUserCreatedById(id: Long): UsdaAbridgedFood?{
+        return dao.getUserCreatedById(id)?.toUsdaAbridgedFood()
     }
 
     suspend fun deleteFromCache(id: Long){
@@ -329,6 +344,110 @@ class NutritionRepo(private val context: Context,
 //                    nutrientId = 1258,
 //                    value = saturatedFat
 //                )
+            )
+        )
+    }
+
+    fun UserCreatedFoods.toUsdaAbridgedFood(): UsdaAbridgedFood{
+        return UsdaAbridgedFood(
+            fdcId = id,
+            description = description,
+            dataType = "Created",
+            // Same reason as above
+            // Genuinely there's probably a much much cleaner way to do this
+            // but rn I cba
+            foodNutrients = listOf(
+                abridgedFoodNutrient(
+                    number = 1008F,
+                    amount = kcal,
+                    unitName = "kcal"
+                ),
+                abridgedFoodNutrient(
+                    number = 1003F,
+                    amount = protein
+                ),
+                abridgedFoodNutrient(
+                    number = 1004F,
+                    amount = totalLipid
+                ),
+                abridgedFoodNutrient(
+                    number = 1005F,
+                    amount = carbs
+                ),
+                abridgedFoodNutrient(
+                    number = 1063F,
+                    amount = sugars
+                ),
+                abridgedFoodNutrient(
+                    number = 1079F,
+                    amount = fiber
+                ),
+                abridgedFoodNutrient(
+                    number = 1087F,
+                    amount = calcium
+                ),
+                abridgedFoodNutrient(
+                    number = 1089F,
+                    amount = iron
+                ),
+                abridgedFoodNutrient(
+                    number = 1092F,
+                    amount = potassium
+                ),
+                abridgedFoodNutrient(
+                    number = 1093F,
+                    amount = sodium
+                ),
+                abridgedFoodNutrient(
+                    number = 1106F,
+                    amount = vitaminA
+                ),
+                abridgedFoodNutrient(
+                    number = 1162F,
+                    amount = vitaminC
+                ),
+                abridgedFoodNutrient(
+                    number = 1165F,
+                    amount = thiamin
+                ),
+                abridgedFoodNutrient(
+                    number = 1167F,
+                    amount = niacin
+                ),
+                abridgedFoodNutrient(
+                    number = 1177F,
+                    amount = folate
+                ),
+                abridgedFoodNutrient(
+                    number = 1253F,
+                    amount = cholesterol
+                ),
+                abridgedFoodNutrient(
+                    number = 1257F,
+                    amount = transFat
+                ),
+                abridgedFoodNutrient(
+                    number = 1258F,
+                    amount = saturatedFat
+                )
+            )
+        )
+    }
+    fun UserCreatedFoods.toUsdaFood(): UsdaFood {
+        return UsdaFood(
+            fdcId = id,
+            description = description,
+            dataType = "Created",
+            brandName = brandName,
+            servingSize = servingSize,
+            // Same reason as above
+            foodNutrients = listOf(
+                FoodNutrient(
+                    nutrientId = 1008,
+                    nutrientName = "Energy",
+                    value = kcal,
+                    unitName = "kcal"
+                )
             )
         )
     }

@@ -231,6 +231,18 @@ fun UserFoodAdd(
                 )
             }
 
+            Column {
+                Text(text = "Brand Name")
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BasicTextField(
+                    value = newData.brandName,
+                    onValueChange = { newData = newData.copy(brandName = it) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -294,6 +306,7 @@ fun NUmberField(
 
 data class newFoodData(
     var description: String = "",
+    var brandName: String = "",
     var servingSize: String = "",
     var protein: String = "",
     var totalLipid: String = "",

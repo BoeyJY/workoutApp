@@ -2,6 +2,7 @@ package com.example.test
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -120,7 +121,13 @@ fun searchTopBar(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                actions()
+                Row(
+                    modifier = Modifier.padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    actions()
+                }
             }  else {
 
                 // Search field

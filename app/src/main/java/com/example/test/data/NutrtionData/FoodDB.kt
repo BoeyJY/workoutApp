@@ -35,6 +35,7 @@ fun getInstance(context: Context): FoodDB =
             CREATE TABLE IF NOT EXISTS `UserCreatedFoods` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `description` TEXT NOT NULL,
+                `brandName` TEXT,
                 `servingSize` REAL NOT NULL,
                 `protein` REAL NOT NULL,
                 `totalLipid` REAL NOT NULL,

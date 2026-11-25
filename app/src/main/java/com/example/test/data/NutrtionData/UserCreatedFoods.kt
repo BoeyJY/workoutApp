@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
 data class UserCreatedFoods(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val description: String,
+    val brandName: String? = null,
     val servingSize: Float = 100F,
     val protein: Float = 0F,
     val totalLipid: Float = 0F,

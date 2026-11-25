@@ -115,7 +115,19 @@ fun FoodList(viewModel: NutritionViewModel = viewModel(),
                         else MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Text("API")
+                    Text("Online")
+                }
+
+                Button(
+                    onClick = { viewModel.setFoodSource(FoodSource.USER_CREATED) },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (currentSource == FoodSource.USER_CREATED)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text("Created")
                 }
             }
 

@@ -99,9 +99,19 @@ interface NutritionDAO{
     """)
     fun getCachedPaginated(query: String): PagingSource<Int, CachedFoods>
 
+    @Query("""
+        SELECT * FROM UserCreatedFoods 
+        WHERE description LIKE '%' || :query || '%' 
+        ORDER BY lastUsed DESC
+    """)
+    fun getUserCreatedPaginated(query: String): PagingSource<Int, UserCreatedFoods>
+
 
     @Query("SELECT * FROM CachedFoods WHERE id = :id")
     suspend fun getCachedFoodById(id: Long): CachedFoods?
+
+    @Query("SELECT * FROM UserCreatedFoods WHERE id = :id")
+    suspend fun getUserCreatedById(id: Long): UserCreatedFoods?
 
     @Query("DELETE FROM CachedFoods WHERE id = :id")
     suspend fun deleteFromCache(id: Long)

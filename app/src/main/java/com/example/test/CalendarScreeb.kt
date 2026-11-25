@@ -1,5 +1,6 @@
 package com.example.test
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -54,6 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import com.example.test.data.ExerciseViewModel
+import java.time.LocalDate
 
 @Composable
 fun CalendarScreen(viewModel: ExerciseViewModel = viewModel(),
@@ -360,6 +363,9 @@ fun CalendarGrid(currentMonth: YearMonth,
                     // Check if this cell contains a valid day of the current month
                     val isValidDay = dayNumber in 1..daysInMonth
 
+                    val isToday = isValidDay &&
+                            currentMonth.atDay(dayNumber) == LocalDate.now()
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -374,11 +380,32 @@ fun CalendarGrid(currentMonth: YearMonth,
                         contentAlignment = Alignment.Center
                     ) {
                         if (isValidDay) {
-                            Text(
-                                text = dayNumber.toString(),
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .then(
+                                        if (isToday) {
+                                            Modifier.background(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                shape = CircleShape
+                                            )
+                                        } else {
+                                            Modifier
+                                        }
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayNumber.toString(),
+                                    fontSize = 16.sp,
+                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isToday) {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        Color.Black
+                                    }
+                                )
+                            }
                         }
                     }
                 }

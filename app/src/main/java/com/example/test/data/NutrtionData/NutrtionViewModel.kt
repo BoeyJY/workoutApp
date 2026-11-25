@@ -39,7 +39,7 @@ sealed interface FoodUiState {
     data class Error(val message: String) : FoodUiState
 }
 
-enum class FoodSource { CACHE, API }
+enum class FoodSource { CACHE, API, USER_CREATED }
 class NutritionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = NutritionRepo(application,
@@ -142,6 +142,10 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
                 FoodSource.CACHE -> {
                     repo.getCachedPaginated(query)
                 }
+
+                FoodSource.USER_CREATED -> {
+                    repo.getUserCreatedPaginated(query)
+                }
             }.cachedIn(viewModelScope)
 
         }
@@ -158,6 +162,10 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
 
     suspend fun getCachedFoodById(id: Long): UsdaAbridgedFood?{
         return repo.getCachedFoodById(id)
+    }
+
+    suspend fun getUserCreatedById(id: Long): UsdaAbridgedFood?{
+        return repo.getUserCreatedById(id)
     }
 
     suspend fun searchCacheThenApi(id: Long): UsdaAbridgedFood{
@@ -181,6 +189,12 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
             val cachedFood = getCachedFoodById(id)
             if (cachedFood != null) {
                 _foodLoadState.value = FoodLoadState.Success(cachedFood)
+                return@launch
+            }
+
+            val userCreated = getUserCreatedById(id)
+            if (userCreated != null){
+                _foodLoadState.value = FoodLoadState.Success(userCreated)
                 return@launch
             }
 
@@ -314,29 +328,30 @@ class NutritionViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun insertUserCreatedFood(newData: newFoodData){
-        val USF = UserCreatedFoods(
-            description = newData.description,
-            servingSize = newData.servingSize.toFloat(),
-            protein = newData.protein.toFloat(),
-            totalLipid = newData.totalLipid.toFloat(),
-            carbs = newData.carbs.toFloat(),
-            kcal = newData.kcal.toFloat(),
-            sugars = newData.sugars.toFloat(),
-            fiber = newData.fiber.toFloat(),
-            calcium = newData.calcium.toFloat(),
-            iron = newData.iron.toFloat(),
-            potassium = newData.potassium.toFloat(),
-            sodium = newData.sodium.toFloat(),
-            vitaminA = newData.vitaminA.toFloat(),
-            vitaminC = newData.vitaminC.toFloat(),
-            thiamin = newData.thiamin.toFloat(),
-            niacin = newData.niacin.toFloat(),
-            folate = newData.folate.toFloat(),
-            cholesterol = newData.cholesterol.toFloat(),
-            transFat = newData.transFat.toFloat(),
-            saturatedFat = newData.saturatedFat.toFloat()
-        )
         viewModelScope.launch{
+            val USF = UserCreatedFoods(
+                description = newData.description,
+                brandName = newData.brandName,
+                servingSize = newData.servingSize.toFloatOrNull() ?: 0f,
+                protein = newData.protein.toFloatOrNull() ?: 0f,
+                totalLipid = newData.totalLipid.toFloatOrNull() ?: 0f,
+                carbs = newData.carbs.toFloatOrNull() ?: 0f,
+                kcal = newData.kcal.toFloatOrNull() ?: 0f,
+                sugars = newData.sugars.toFloatOrNull() ?: 0f,
+                fiber = newData.fiber.toFloatOrNull() ?: 0f,
+                calcium = newData.calcium.toFloatOrNull() ?: 0f,
+                iron = newData.iron.toFloatOrNull() ?: 0f,
+                potassium = newData.potassium.toFloatOrNull() ?: 0f,
+                sodium = newData.sodium.toFloatOrNull() ?: 0f,
+                vitaminA = newData.vitaminA.toFloatOrNull() ?: 0f,
+                vitaminC = newData.vitaminC.toFloatOrNull() ?: 0f,
+                thiamin = newData.thiamin.toFloatOrNull() ?: 0f,
+                niacin = newData.niacin.toFloatOrNull() ?: 0f,
+                folate = newData.folate.toFloatOrNull() ?: 0f,
+                cholesterol = newData.cholesterol.toFloatOrNull() ?: 0f,
+                transFat = newData.transFat.toFloatOrNull() ?: 0f,
+                saturatedFat = newData.saturatedFat.toFloatOrNull() ?: 0f
+            )
             repo.insertUserCreatedFood(USF)
         }
     }
