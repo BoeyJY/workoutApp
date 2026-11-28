@@ -6,17 +6,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.test.BuildConfig
 import com.example.test.data.Exercise
 import com.example.test.data.ExerciseRepo
+import com.example.test.data.NutrtionData.DailyMacros
+import com.example.test.data.NutrtionData.NutritionRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DownloadViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repo = ExerciseRepo(application)
+    private val nutritionRepo = NutritionRepo(application, BuildConfig.USDA_APIKEY)
 
 //    init {
 //        viewModelScope.launch {
@@ -24,6 +34,21 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
 ////            repo.getAllExercises()
 //        }
 //    }
+
+    private val _selectedDate = MutableStateFlow(
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        .format(Date()))
+    val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
+
+    val dailyMacros: StateFlow<DailyMacros> = _selectedDate
+        .flatMapLatest { date -> nutritionRepo.getDailyMacrosFlow(date) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = DailyMacros(0f, 0f, 0f, 0f)
+        )
+
+    fun setDate(newDate: String) { _selectedDate.value = newDate }
 
     sealed interface DownloadState {
         data object NotStarted : DownloadState

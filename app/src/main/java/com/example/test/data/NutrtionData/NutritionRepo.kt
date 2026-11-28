@@ -74,6 +74,8 @@ class NutritionRepo(private val context: Context,
         return dao.getLoggedFoodsByDate(date)
     }
 
+    fun getDailyMacrosFlow(date: String): Flow<DailyMacros> = dao.getDailyMacrosFlow(date)
+
 //    suspend fun getDailyMacros(date: String): DailyMacros{
 //        return dao.getDailyMacros(date)
 //    }

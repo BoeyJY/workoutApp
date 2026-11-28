@@ -29,6 +29,16 @@ interface NutritionDAO{
     @Query("SELECT * FROM logged_foods WHERE date = :date")
     suspend fun getLoggedFoodsByDate(date: String): List<logged_foods>
 
+    @Query("""
+    SELECT IFNULL(SUM(kcal), 0)    AS cal,
+           IFNULL(SUM(protein), 0) AS protein,
+           IFNULL(SUM(carbs), 0)   AS carb,
+           IFNULL(SUM(fat), 0)     AS fat
+    FROM logged_foods
+    WHERE date = :date
+""")
+    fun getDailyMacrosFlow(date: String): Flow<DailyMacros>
+
     @Query("SELECT * FROM logged_foods WHERE id = :id")
     suspend fun getLoggedFoodsById(id: Long): logged_foods
 
